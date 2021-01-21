@@ -12,14 +12,13 @@ for (let i=0; i < opKeys.length; i++) {
     operations[ChainTypes.operations[opKeys[i]]] = opKeys[i];
 }
 
-//console.log(operations)
+console.log(operations)
 
 BitShares.connect(CONFIG.node);
 BitShares.subscribe('connected', startAfterConnected);
 BitShares.subscribe('block', callEachBlock);
 
 let globalProperties = null;
-let dynamicProperties = null;
 
 async function startAfterConnected() {
     globalProperties = await BitShares.db.get_global_properties();
@@ -39,12 +38,32 @@ async function callEachBlock(obj) {
             const opType = operations[txs[i].operations[j][0]];
             const op = txs[i].operations[j][1];
             let opAccount = null;
+            let ext = null;
             if (opType === 'limit_order_cancel') {
                 opAccount = (await BitShares.db.get_objects([op.fee_paying_account]))[0];
             }
 
             if (opType === 'limit_order_create') {
+                console.log(op)
                 opAccount = (await BitShares.db.get_objects([op.seller]))[0];
+                let assetSell = (await BitShares.db.get_objects([op.amount_to_sell.asset_id]))[0];
+                let assetReceive = (await BitShares.db.get_objects([op.min_to_receive.asset_id]))[0]
+
+                ext = {
+                    from: opAccount.name,
+                    sell: {
+                        s: assetSell.symbol,
+                        amount: op.amount_to_sell.amount / 10 ** assetSell.precision,
+                        p: assetSell.precision
+                    },
+                    receive: {
+                        s: assetReceive.symbol,
+                        amount: op.min_to_receive.amount / 10 ** assetReceive.precision,
+                        p: assetReceive.precision
+                    },
+
+                }
+                console.log('ext', ext)
             }
 
             if (opType === 'asset_publish_feed') {
@@ -52,8 +71,23 @@ async function callEachBlock(obj) {
                 //console.log(op)
             }
 
-
-
+            if (opType === 'transfer') {
+                let asset = (await BitShares.db.get_objects([op.amount.asset_id]))[0]
+                try {
+                    ext = {
+                        from: (await BitShares.db.get_objects([op.from]))[0],
+                        to: (await BitShares.db.get_objects([op.to]))[0],
+                        asset: {
+                            s: asset.symbol,
+                            p: asset.precision
+                        },
+                        amount: op.amount.amount / 10 ** asset.precision,
+                    }
+                } catch(e) {
+                    console.log('err', e)
+                }
+                console.log(op)
+            }
 
             //console.log(txs)
 
@@ -62,7 +96,8 @@ async function callEachBlock(obj) {
                 type: opType,
                 op: op,
                 account: opAccount,
-                block: obj[0].head_block_number
+                block: obj[0].head_block_number,
+                ext: ext,
             })
         }
     }
