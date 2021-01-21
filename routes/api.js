@@ -12,14 +12,17 @@ for (let i=0; i < opKeys.length; i++) {
     operations[ChainTypes.operations[opKeys[i]]] = opKeys[i];
 }
 
-console.log(operations)
+//console.log(operations)
 
 BitShares.connect(CONFIG.node);
 BitShares.subscribe('connected', startAfterConnected);
 BitShares.subscribe('block', callEachBlock);
 
-async function startAfterConnected() {
+let globalProperties = null;
 
+async function startAfterConnected() {
+    globalProperties = await BitShares.db.get_global_properties();
+    console.log(globalProperties.parameters.current_fees.parameters)
 }
 
 async function callEachBlock(obj) {
@@ -45,6 +48,7 @@ async function callEachBlock(obj) {
             }
 
 
+            //console.log(txs)
 
             records.unshift({
                 opId: txs[i].operations[j][0],
@@ -62,14 +66,15 @@ async function callEachBlock(obj) {
             witness: witnessAccount[0].name,
             block: obj[0],
             records: records,
+            txs: txs,
         },
     });
 
     //console.log(result)
 }
 
-router.get('/test', async function (req, res, next) {
-
+router.get('/global-properties', async function (req, res, next) {
+    await res.json(globalProperties);
 });
 
 
