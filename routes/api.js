@@ -19,10 +19,11 @@ BitShares.subscribe('connected', startAfterConnected);
 BitShares.subscribe('block', callEachBlock);
 
 let globalProperties = null;
+let dynamicProperties = null;
 
 async function startAfterConnected() {
     globalProperties = await BitShares.db.get_global_properties();
-    console.log(globalProperties.parameters.current_fees.parameters)
+    dynamicProperties = await BitShares.db.get_dynamic_global_properties();
 }
 
 async function callEachBlock(obj) {
@@ -75,6 +76,10 @@ async function callEachBlock(obj) {
 
 router.get('/global-properties', async function (req, res, next) {
     await res.json(globalProperties);
+});
+
+router.get('/dynamic-properties', async function (req, res, next) {
+    await res.json(dynamicProperties);
 });
 
 
