@@ -47,6 +47,13 @@ async function callEachBlock(obj) {
                 opAccount = (await BitShares.db.get_objects([op.seller]))[0];
             }
 
+            if (opType === 'asset_publish_feed') {
+                opAccount = (await BitShares.db.get_objects([op.publisher]))[0];
+                //console.log(op)
+            }
+
+
+
 
             //console.log(txs)
 
