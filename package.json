@@ -9,6 +9,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "bitsharesjs": "^4.0.0",
     "btsdex": "^0.7.3",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
