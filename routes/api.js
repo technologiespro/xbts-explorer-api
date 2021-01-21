@@ -15,6 +15,11 @@ async function startAfterConnected() {
 
 async function callEachBlock(obj) {
     console.log(obj)
+    emitter.eventBus.sendEvent('block:response', {
+        op: 'block:response',
+        data: obj[0],
+    });
+
     let result = await BitShares.db.get_block(
         obj[0].head_block_number
     );

@@ -79,7 +79,7 @@ function wsStart() {
 
         if (!eventsInit) {
 
-            emitter.eventBus.on('data:response', function (data) {
+            emitter.eventBus.on('block:response', function (data) {
                 data.clients = wss.clients.size;
                 wss.clients
                     .forEach(client => {
