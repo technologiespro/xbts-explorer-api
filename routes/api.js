@@ -23,7 +23,6 @@ let dynamicProperties = null;
 
 async function startAfterConnected() {
     globalProperties = await BitShares.db.get_global_properties();
-    dynamicProperties = await BitShares.db.get_dynamic_global_properties();
 }
 
 async function callEachBlock(obj) {
@@ -56,6 +55,7 @@ async function callEachBlock(obj) {
                 type: opType,
                 op: op,
                 account: opAccount,
+                block: obj[0].head_block_number
             })
         }
     }
@@ -79,7 +79,7 @@ router.get('/global-properties', async function (req, res, next) {
 });
 
 router.get('/dynamic-properties', async function (req, res, next) {
-    await res.json(dynamicProperties);
+    await res.json(await BitShares.db.get_dynamic_global_properties());
 });
 
 
