@@ -89,5 +89,13 @@ router.get('/dynamic-properties', async function (req, res, next) {
     await res.json(await BitShares.db.get_dynamic_global_properties());
 });
 
+router.get('/config', async function (req, res, next) {
+    await res.json(await BitShares.db.get_config());
+});
+
+router.get('/chain', async function (req, res, next) {
+    await res.json(await BitShares.db.get_chain_properties());
+});
+
 
 module.exports = router;
