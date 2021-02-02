@@ -37,6 +37,7 @@ async function callEachBlock(obj) {
             //{ "fee": { "amount": 482, "asset_id": "1.3.0" }, "fee_paying_account": "1.2.33015", "order": "1.7.455419963", "extensions": [] }
             const opType = operations[txs[i].operations[j][0]];
             const op = txs[i].operations[j][1];
+            //console.log(op)
             let opAccount = null;
             let ext = null;
             if (opType === 'limit_order_cancel') {
@@ -92,6 +93,16 @@ async function callEachBlock(obj) {
 
             //console.log(txs)
 
+            let fee = null;
+            if (op.fee) {
+                let feeAsset = (await BitShares.db.get_objects([op.fee.asset_id]))[0]
+                fee =  {
+                    asset: feeAsset.symbol,
+                    amount: (op.fee.amount / feeAsset.precision ** 10).toFixed(feeAsset.precision)
+                }
+                //console.log(feeAsset)
+            }
+
             records.unshift({
                 opId: txs[i].operations[j][0],
                 type: opType,
@@ -99,6 +110,8 @@ async function callEachBlock(obj) {
                 account: opAccount,
                 block: obj[0].head_block_number,
                 ext: ext,
+                fee: fee,
+
             })
         }
     }
