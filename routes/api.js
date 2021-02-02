@@ -44,7 +44,7 @@ async function callEachBlock(obj) {
             }
 
             if (opType === 'limit_order_create') {
-                console.log(op)
+                //console.log(op)
                 opAccount = (await BitShares.db.get_objects([op.seller]))[0];
                 let assetSell = (await BitShares.db.get_objects([op.amount_to_sell.asset_id]))[0];
                 let assetReceive = (await BitShares.db.get_objects([op.min_to_receive.asset_id]))[0]
@@ -61,9 +61,10 @@ async function callEachBlock(obj) {
                         amount: op.min_to_receive.amount / 10 ** assetReceive.precision,
                         p: assetReceive.precision
                     },
+                    price: ((op.min_to_receive.amount / 10 ** assetReceive.precision) / (op.amount_to_sell.amount / 10 ** assetSell.precision)).toFixed(assetSell.precision)
 
                 }
-                console.log('ext', ext)
+                //console.log('ext', ext)
             }
 
             if (opType === 'asset_publish_feed') {
@@ -86,7 +87,7 @@ async function callEachBlock(obj) {
                 } catch(e) {
                     console.log('err', e)
                 }
-                console.log(op)
+                //console.log(op)
             }
 
             //console.log(txs)
@@ -131,6 +132,21 @@ router.get('/config', async function (req, res, next) {
 router.get('/chain', async function (req, res, next) {
     await res.json(await BitShares.db.get_chain_properties());
 });
+
+router.get('/get-account/:account', async function (req, res, next) {
+    const account = await BitShares.accounts[req.params.account]
+    let ops = await BitShares.history.get_account_history(account.id, "1.11.0", 10, "1.11.0")
+    await res.json({
+        account: account,
+        history:ops
+    });
+});
+
+router.get('/assets', async function (req, res, next) {
+    await res.json(await BitShares.db.list_assets("XBTSX", 100))
+});
+
+
 
 
 module.exports = router;
