@@ -71,7 +71,6 @@ async function callEachBlock(obj) {
 
             if (opType === 'asset_publish_feed') {
                 opAccount = (await BitShares.db.get_objects([op.publisher]))[0];
-                //console.log(op)
             }
 
             if (opType === 'transfer') {
@@ -96,8 +95,9 @@ async function callEachBlock(obj) {
 
             let fee = null;
             if (op.fee) {
+                console.log(op.fee)
                 let feeAsset = (await BitShares.db.get_objects([op.fee.asset_id]))[0]
-                let amountFee = op.fee.amount / (feeAsset.precision ** 10);
+                let amountFee = op.fee.amount / (10 ** feeAsset.precision);
                 fee =  {
                     asset: feeAsset.symbol,
                     amount: amountFee.toFixed(feeAsset.precision)
