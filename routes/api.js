@@ -32,6 +32,7 @@ async function callEachBlock(obj) {
     //console.log('witnessAccount', witnessAccount[0].name);
 
     let records = [];
+    let feesBlock = 0;
     for (let i=0; i < txs.length; i++) {
         for (let j=0; j < txs[i].operations.length; j++) {
             //{ "fee": { "amount": 482, "asset_id": "1.3.0" }, "fee_paying_account": "1.2.33015", "order": "1.7.455419963", "extensions": [] }
@@ -96,9 +97,13 @@ async function callEachBlock(obj) {
             let fee = null;
             if (op.fee) {
                 let feeAsset = (await BitShares.db.get_objects([op.fee.asset_id]))[0]
+                let amountFee = op.fee.amount / (feeAsset.precision ** 10);
                 fee =  {
                     asset: feeAsset.symbol,
-                    amount: (op.fee.amount / feeAsset.precision ** 10).toFixed(feeAsset.precision)
+                    amount: amountFee.toFixed(feeAsset.precision)
+                }
+                if (feeAsset.symbol === 'BTS') {
+                    feesBlock = feesBlock + amountFee;
                 }
                 //console.log(feeAsset)
             }
@@ -124,6 +129,7 @@ async function callEachBlock(obj) {
             block: obj[0],
             records: records,
             txs: txs,
+            fees: feesBlock.toFixed(5),
         },
     });
 
