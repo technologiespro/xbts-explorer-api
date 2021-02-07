@@ -95,7 +95,7 @@ async function callEachBlock(obj) {
 
             let fee = null;
             if (op.fee) {
-                console.log(op.fee)
+                //console.log(op.fee)
                 let feeAsset = (await BitShares.db.get_objects([op.fee.asset_id]))[0]
                 let amountFee = op.fee.amount / (10 ** feeAsset.precision);
                 fee =  {
