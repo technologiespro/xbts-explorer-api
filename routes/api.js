@@ -101,7 +101,7 @@ async function callEachBlock(obj) {
                 fee =  {
                     asset: feeAsset.symbol,
                     amount: amountFee.toFixed(feeAsset.precision)
-                }
+                };
                 if (feeAsset.symbol === 'BTS') {
                     feesBlock = feesBlock + amountFee;
                 }
@@ -163,6 +163,14 @@ router.get('/get-account/:account', async function (req, res, next) {
 
 router.get('/assets', async function (req, res, next) {
     await res.json(await BitShares.db.list_assets("XBTSX", 100))
+});
+
+router.get('/asset-name/:asset', async function (req, res, next) {
+    await res.json(await BitShares.assets[req.params['asset']]);
+});
+
+router.get('/asset-id/:id', async function (req, res, next) {
+    await res.json(await BitShares.assets.id(req.params['id']));
 });
 
 
