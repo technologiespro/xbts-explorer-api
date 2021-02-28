@@ -8,7 +8,7 @@ const ChainTypes = require('bitsharesjs/dist/chain/src/ChainTypes.js');
 
 const opKeys = Object.keys(ChainTypes.operations);
 let operations = [];
-for (let i=0; i < opKeys.length; i++) {
+for (let i = 0; i < opKeys.length; i++) {
     operations[ChainTypes.operations[opKeys[i]]] = opKeys[i];
 }
 
@@ -34,8 +34,8 @@ async function callEachBlock(obj) {
 
     let records = [];
     let feesBlock = 0;
-    for (let i=0; i < txs.length; i++) {
-        for (let j=0; j < txs[i].operations.length; j++) {
+    for (let i = 0; i < txs.length; i++) {
+        for (let j = 0; j < txs[i].operations.length; j++) {
             //{ "fee": { "amount": 482, "asset_id": "1.3.0" }, "fee_paying_account": "1.2.33015", "order": "1.7.455419963", "extensions": [] }
             const opType = operations[txs[i].operations[j][0]];
             const op = txs[i].operations[j][1];
@@ -86,7 +86,7 @@ async function callEachBlock(obj) {
                         },
                         amount: op.amount.amount / 10 ** asset.precision,
                     }
-                } catch(e) {
+                } catch (e) {
                     console.log('err', e)
                 }
                 //console.log(op)
@@ -99,7 +99,7 @@ async function callEachBlock(obj) {
                 //console.log(op.fee)
                 let feeAsset = (await BitShares.db.get_objects([op.fee.asset_id]))[0]
                 let amountFee = op.fee.amount / (10 ** feeAsset.precision);
-                fee =  {
+                fee = {
                     asset: feeAsset.symbol,
                     amount: amountFee.toFixed(feeAsset.precision)
                 };
@@ -158,7 +158,7 @@ router.get('/get-account/:account', async function (req, res, next) {
     let ops = await BitShares.history.get_account_history(account.id, "1.11.0", 10, "1.11.0")
     await res.json({
         account: account,
-        history:ops
+        history: ops
     });
 });
 
@@ -171,7 +171,7 @@ router.get('/asset-name/:asset', async function (req, res, next) {
 
     try {
         data.options.description = JSON.parse(data.options.description);
-        data.options.description.main = data.options.description.main.replace( /[\r\n]+/gm, "" );
+        data.options.description.main = data.options.description.main.replace(/[\r\n]+/gm, "");
     } catch (e) {
 
     }
@@ -191,10 +191,26 @@ router.get('/asset-holders/:asset', async function (req, res, next) {
 });
 
 router.get('/block/:height', async function (req, res, next) {
-    await res.json(await BitShares.db.get_block(req.params['height']));
+    const block = await BitShares.db.get_block(req.params['height']);
+    const witness = (await BitShares.db.get_objects([block.witness]))[0];
+    const user = (await BitShares.db.get_objects([witness.witness_account]))[0];
+    let txs = [];
+    for (let i = 0; i < block.transactions.length; i++) {
+        console.log(block.transactions[i].operations[0][1])
+        txs.push({
+            op: operations[block.transactions[i].operations[0][0]],
+            account: (await BitShares.db.get_objects([block.transactions[i].operations[0][1].fee_paying_account]))[0]
+        });
+    }
+    await res.json({
+        raw: block,
+        data: {
+            witness: witness,
+            user: user,
+            txs: txs
+        }
+    });
 });
-
-
 
 
 module.exports = router;
