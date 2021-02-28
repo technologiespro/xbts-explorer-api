@@ -18,6 +18,7 @@ BitShares.connect(CONFIG.node);
 BitShares.subscribe('connected', startAfterConnected);
 BitShares.subscribe('block', callEachBlock);
 
+
 let globalProperties = null;
 
 async function startAfterConnected() {
@@ -166,11 +167,27 @@ router.get('/assets', async function (req, res, next) {
 });
 
 router.get('/asset-name/:asset', async function (req, res, next) {
-    await res.json(await BitShares.assets[req.params['asset']]);
+    let data = await BitShares.assets[req.params['asset']]
+
+    try {
+        data.options.description = JSON.parse(data.options.description);
+        data.options.description.main = data.options.description.main.replace( /[\r\n]+/gm, "" );
+    } catch (e) {
+
+    }
+
+    await res.json(data);
 });
 
 router.get('/asset-id/:id', async function (req, res, next) {
     await res.json(await BitShares.assets.id(req.params['id']));
+});
+
+router.get('/asset-holders/:asset', async function (req, res, next) {
+    let assetId = (await BitShares.assets[req.params['asset']]).id;
+    let holders = await BitShares.assets.asset_holders_count(assetId)
+    //await res.json();
+    await res.json(holders)
 });
 
 

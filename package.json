@@ -12,12 +12,14 @@
     "@binance-chain/javascript-sdk": "^4.1.1",
     "axios": "^0.21.1",
     "bitsharesjs": "^4.0.0",
+    "bitsharesjs-ws": "^4.0.0",
     "btsdex": "^0.7.3",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "jsonfile": "^6.1.0",
     "morgan": "~1.9.1",
-    "ws": "^7.4.2"
+    "ws": "^7.4.2",
+    "ws-client-js": "^1.0.5"
   }
 }
