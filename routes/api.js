@@ -190,6 +190,10 @@ router.get('/asset-holders/:asset', async function (req, res, next) {
     await res.json(holders)
 });
 
+router.get('/block/:height', async function (req, res, next) {
+    await res.json(await BitShares.db.get_block(req.params['height']));
+});
+
 
 
 
