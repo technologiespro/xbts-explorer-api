@@ -198,6 +198,7 @@ router.get('/block/:height', async function (req, res, next) {
     for (let i = 0; i < block.transactions.length; i++) {
         console.log(block.transactions[i].operations[0][1])
         txs.push({
+            order: block.transactions[i].operations[0][1].order,
             op: operations[block.transactions[i].operations[0][0]],
             account: (await BitShares.db.get_objects([block.transactions[i].operations[0][1].fee_paying_account]))[0]
         });
