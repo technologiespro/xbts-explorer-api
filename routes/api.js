@@ -227,5 +227,15 @@ router.get('/block/:height', async function (req, res, next) {
     });
 });
 
+router.get('/holders/:symbol', async function (req, res, next) {
+   await res.json(await BitShares.holders(req.params['symbol']));
+});
+
+router.get('/object/:id', async function (req, res, next) {
+    await res.json(await BitShares.db.get_objects(req.params['id']));
+});
+
+
+
 
 module.exports = router;
