@@ -246,14 +246,37 @@ router.get('/object/:id', async function (req, res, next) {
     await res.json(result);
 });
 
+/** FOR UI **/
 router.post('/objects', async function (req, res, next) {
     let result = null;
     try {
-        result = await BitShares.db.get_objects([req.body.objects])
+        result = await BitShares.db.get_objects(req.body.objects)
     } catch(e) {
         result = e;
     }
     await res.json(result);
 });
+
+router.get('/lp-history/:id', async function (req, res, next) {
+    let result = null;
+    try {
+        result = await BitShares.history.get_liquidity_pool_history(req.params['id'])
+    } catch(e) {
+        result = e;
+    }
+    await res.json(result);
+});
+
+router.post('/lp-history', async function (req, res, next) {
+    let result = null;
+    try {
+        result = await BitShares.history.get_liquidity_pool_history(req.body.id, null, null, req.body.limit, req.body.op)
+    } catch(e) {
+        result = e;
+    }
+    await res.json(result);
+});
+
+
 
 module.exports = router;
