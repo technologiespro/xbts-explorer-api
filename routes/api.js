@@ -270,7 +270,17 @@ router.get('/lp-history/:id', async function (req, res, next) {
 router.post('/lp-history', async function (req, res, next) {
     let result = null;
     try {
-        result = await BitShares.history.get_liquidity_pool_history(req.body.id, null, null, req.body.limit, req.body.op)
+        result = await BitShares.history.get_liquidity_pool_history(req.body.id, null, null, req.body.limit || 10, req.body.op)
+    } catch(e) {
+        result = e;
+    }
+    await res.json(result);
+});
+
+router.post('/accounts', async function (req, res, next) {
+    let result = null;
+    try {
+        result = await BitShares.db.get_full_accounts(req.body['ids'], false)
     } catch(e) {
         result = e;
     }
