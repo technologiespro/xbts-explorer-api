@@ -19,6 +19,7 @@
     "express": "~4.16.1",
     "jsonfile": "^6.1.0",
     "morgan": "~1.9.1",
+    "simple-lamport": "^4.0.2",
     "ws": "^7.4.2",
     "ws-client-js": "^1.0.5"
   }

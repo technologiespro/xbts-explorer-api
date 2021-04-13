@@ -166,6 +166,10 @@ router.get('/assets', async function (req, res, next) {
     await res.json(await BitShares.db.list_assets("XBTSX", 100))
 });
 
+router.post('/assets', async function (req, res, next) {
+    await res.json(await BitShares.db.get_assets(req.body.assets))
+});
+
 router.get('/asset-name/:asset', async function (req, res, next) {
     let data = await BitShares.assets[req.params['asset']]
 
@@ -232,10 +236,24 @@ router.get('/holders/:symbol', async function (req, res, next) {
 });
 
 router.get('/object/:id', async function (req, res, next) {
-    await res.json(await BitShares.db.get_objects(req.params['id']));
+    let result = null;
+    try {
+        result = await BitShares.db.get_objects([req.params['id']])
+    } catch(e) {
+        result = e;
+    }
+
+    await res.json(result);
 });
 
-
-
+router.post('/objects', async function (req, res, next) {
+    let result = null;
+    try {
+        result = await BitShares.db.get_objects([req.body.objects])
+    } catch(e) {
+        result = e;
+    }
+    await res.json(result);
+});
 
 module.exports = router;
