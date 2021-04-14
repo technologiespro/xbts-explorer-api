@@ -231,8 +231,8 @@ router.get('/block/:height', async function (req, res, next) {
     });
 });
 
-router.get('/holders/:symbol', async function (req, res, next) {
-   await res.json(await BitShares.holders(req.params['symbol']));
+router.get('/holders/:symbol/:from/:to', async function (req, res, next) {
+   await res.json(await BitShares.holders(req.params['symbol'], req.params['from'], req.params['to']));
 });
 
 router.get('/object/:id', async function (req, res, next) {
