@@ -188,10 +188,10 @@ router.get('/asset-id/:id', async function (req, res, next) {
 });
 
 router.get('/asset-holders/:asset', async function (req, res, next) {
-    let assetId = (await BitShares.assets[req.params['asset']]).id;
-    let holders = await BitShares.assets.asset_holders_count(assetId)
-    //await res.json();
-    await res.json(holders)
+    //let assetId = (await BitShares.assets[req.params['asset']]).id;
+    //let holders = await BitShares.holdersCount(req.params['asset'])
+    await res.json();
+    //await res.json(holders)
 });
 
 router.get('/block/:height', async function (req, res, next) {
@@ -286,6 +286,15 @@ router.post('/accounts', async function (req, res, next) {
     }
     await res.json(result);
 });
+
+router.get('/lps-a/:asset', async function (req, res, next) {
+    await res.json(await BitShares.db.get_liquidity_pools_by_asset_a(req.params['asset'], null, null));
+});
+
+router.get('/lps-ab/:a/:b', async function (req, res, next) {
+    await res.json(await BitShares.db.get_liquidity_pools_by_both_assets(req.params['a'], req.params['b'], null, null));
+});
+
 
 
 
