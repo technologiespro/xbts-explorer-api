@@ -291,6 +291,10 @@ router.get('/lps-a/:asset', async function (req, res, next) {
     await res.json(await BitShares.db.get_liquidity_pools_by_asset_a(req.params['asset'], null, null));
 });
 
+router.get('/lps-b/:asset', async function (req, res, next) {
+    await res.json(await BitShares.db.get_liquidity_pools_by_asset_b(req.params['asset'], null, null));
+});
+
 router.get('/lps-ab/:a/:b', async function (req, res, next) {
     await res.json(await BitShares.db.get_liquidity_pools_by_both_assets(req.params['a'], req.params['b'], null, null));
 });
