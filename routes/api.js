@@ -288,7 +288,30 @@ router.post('/accounts', async function (req, res, next) {
 });
 
 router.get('/lps-a/:asset', async function (req, res, next) {
-    await res.json(await BitShares.db.get_liquidity_pools_by_asset_a(req.params['asset'], null, null));
+    //await BitShares.db.get_objects([obj[0].current_witness]);
+    let pools = await BitShares.db.get_liquidity_pools_by_asset_a(req.params['asset'], null, null)
+    if (pools.length) {
+        const a = await BitShares.db.get_objects([pools[0].asset_a]);
+        console.log(a)
+        let ids = [];
+        for (let i=0; i < pools.length; i++) {
+            pools[i].a = {
+                symbol: a[0].symbol,
+                precision: a[0].precision,
+            };
+            ids.push(pools[i].asset_b);
+        }
+        const b = await BitShares.db.get_objects(ids);
+        for (let i=0; i < pools.length; i++) {
+            pools[i].b = {
+                symbol: b[i].symbol,
+                precision: b[i].precision,
+            };
+        }
+
+    }
+
+    await res.json(pools);
 });
 
 router.get('/lps-b/:asset', async function (req, res, next) {
