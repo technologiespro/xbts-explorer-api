@@ -292,7 +292,6 @@ router.get('/lps-a/:asset', async function (req, res, next) {
     let pools = await BitShares.db.get_liquidity_pools_by_asset_a(req.params['asset'], null, null)
     if (pools.length) {
         const a = await BitShares.db.get_objects([pools[0].asset_a]);
-        console.log(a)
         let ids = [];
         for (let i=0; i < pools.length; i++) {
             pools[i].a = {
@@ -308,14 +307,31 @@ router.get('/lps-a/:asset', async function (req, res, next) {
                 precision: b[i].precision,
             };
         }
-
     }
-
     await res.json(pools);
 });
 
 router.get('/lps-b/:asset', async function (req, res, next) {
-    await res.json(await BitShares.db.get_liquidity_pools_by_asset_b(req.params['asset'], null, null));
+    let pools = await BitShares.db.get_liquidity_pools_by_asset_b(req.params['asset'], null, null);
+    if (pools.length) {
+        const b = await BitShares.db.get_objects([pools[1].asset_b]);
+        let ids = [];
+        for (let i=0; i < pools.length; i++) {
+            pools[i].b = {
+                symbol: b[0].symbol,
+                precision: b[0].precision,
+            };
+            ids.push(pools[i].asset_a);
+        }
+        const a = await BitShares.db.get_objects(ids);
+        for (let i=0; i < pools.length; i++) {
+            pools[i].a = {
+                symbol: a[i].symbol,
+                precision: a[i].precision,
+            };
+        }
+    }
+    await res.json(pools);
 });
 
 router.get('/lps-ab/:a/:b', async function (req, res, next) {
