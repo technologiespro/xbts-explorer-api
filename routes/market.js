@@ -9,7 +9,7 @@ async function getPricePaprika(ticker) {
     return data.data
 }
 
-router.get('/price-paprika/:ticker', async function (req, res, next) {
+router.get('/market-price/:ticker', async function (req, res, next) {
     let dt = Math.floor(Date.now() / 1000) - 60;
 
     if (!cacheTickers[req.params["ticker"]]) {
