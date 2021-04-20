@@ -14,6 +14,7 @@ const wsSrv = require('./ws-server');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const apiRouter = require('./routes/api');
+const apiMarket = require('./routes/market');
 
 var app = express();
 
@@ -33,5 +34,6 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 app.use('/api', apiRouter);
+app.use('/market', apiMarket);
 
 module.exports = app;
