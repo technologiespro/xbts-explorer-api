@@ -9,8 +9,8 @@ async function getPricePaprika(ticker) {
     return data.data
 }
 
-router.get('/market-price/:ticker', async function (req, res, next) {
-    let dt = Math.floor(Date.now() / 1000) - 60;
+router.get('/price/:ticker', async function (req, res, next) {
+    let dt = Math.floor(Date.now() / 1000) - 90;
 
     if (!cacheTickers[req.params["ticker"]]) {
         cacheTickers[req.params["ticker"]]= {};
