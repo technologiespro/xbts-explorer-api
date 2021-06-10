@@ -154,15 +154,19 @@ router.get('/chain', async function (req, res, next) {
 });
 
 router.get('/get-account/:account', async function (req, res, next) {
-    const account = await BitShares.accounts[req.params.account]
-    let ops = await BitShares.history.get_account_history(account.id, "1.11.0", 10, "1.11.0")
+    const account = await BitShares.accounts[req.params.account];
+    const ops = await BitShares.history.get_account_history(account.id, "1.11.0", 10, "1.11.0");
     await res.json({
         account: account,
         history: ops
     });
 });
 
-router.get('/assets', async function (req, res, next) {
+router.get('/ticker/:s1/:s2', async function (req, res, next) {
+    await res.json(await BitShares.ticker(req.params['s1'], req.params['s2']))
+});
+
+router.get('/get-asset', async function (req, res, next) {
     await res.json(await BitShares.db.list_assets("XBTSX", 100))
 });
 
@@ -214,7 +218,6 @@ router.get('/block/:height', async function (req, res, next) {
             account = (await BitShares.db.get_objects([block.transactions[i].operations[0][1].seller]))[0]
         }
 
-        console.log(block.transactions[i].operations[0][1])
         txs.push({
             order: block.transactions[i].operations[0][1].order,
             op: operations[block.transactions[i].operations[0][0]],
@@ -287,6 +290,11 @@ router.post('/accounts', async function (req, res, next) {
     await res.json(result);
 });
 
+
+router.get('/lp-apy/:id', async function (req, res, next) {
+    await res.json(await BitShares.db.list_liquidity_pools(1, req.params['id'], true))
+});
+
 router.get('/lps-a/:asset', async function (req, res, next) {
     //await BitShares.db.get_objects([obj[0].current_witness]);
     let pools = await BitShares.db.get_liquidity_pools_by_asset_a(req.params['asset'], null, null)
@@ -338,6 +346,9 @@ router.get('/lps-ab/:a/:b', async function (req, res, next) {
     await res.json(await BitShares.db.get_liquidity_pools_by_both_assets(req.params['a'], req.params['b'], null, null));
 });
 
+router.get('/lps/:a', async function (req, res, next) {
+    await res.json(await BitShares.db.get_liquidity_pools_by_one_asset(req.params['a']));
+});
 
 
 
