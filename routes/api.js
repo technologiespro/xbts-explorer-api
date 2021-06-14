@@ -18,6 +18,8 @@ BitShares.connect(CONFIG.node);
 BitShares.subscribe('connected', startAfterConnected);
 BitShares.subscribe('block', callEachBlock);
 
+console.log(CONFIG.exclude)
+
 
 let globalProperties = null;
 
@@ -350,53 +352,55 @@ router.get('/lps/:a', async function (req, res, next) {
     const pools = await BitShares.db.get_liquidity_pools_by_one_asset(req.params['a']);
     let result = [];
     for (let i = 0; i < pools.length; i++) {
-        const shareDynId = pools[i].share_asset.replace("1.3.", "2.3.");
-        const poolAssets = await BitShares.db.get_objects([pools[i].asset_a, pools[i].asset_b, pools[i].share_asset, shareDynId]);
-        let shareDesc = {
-            main: "",
-            short_name: poolAssets[0].symbol + '/' + poolAssets[1].symbol + ' Liquidity Pool Token',
+        if (!CONFIG.exclude[pools[i].id]) {
+            const shareDynId = pools[i].share_asset.replace("1.3.", "2.3.");
+            const poolAssets = await BitShares.db.get_objects([pools[i].asset_a, pools[i].asset_b, pools[i].share_asset, shareDynId]);
+            let shareDesc = {
+                main: "",
+                short_name: poolAssets[0].symbol + '/' + poolAssets[1].symbol + ' Liquidity Pool Token',
+            }
+
+            try {
+                shareDesc = JSON.parse(poolAssets[2].options.description);
+            } catch (e) {
+
+            }
+
+            result.push({
+                POOL: pools[i],
+                A: {
+                    balance: (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision),
+                    asset: {
+                        id: poolAssets[0].id,
+                        symbol: poolAssets[0].symbol,
+                        precision: poolAssets[0].precision,
+                        issuer: poolAssets[0].issuer,
+                        market_fee_percent: poolAssets[0].options.market_fee_percent / 100,
+                    }
+                },
+                B: {
+                    balance: (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision),
+                    asset: {
+                        id: poolAssets[1].id,
+                        symbol: poolAssets[1].symbol,
+                        precision: poolAssets[1].precision,
+                        issuer: poolAssets[1].issuer,
+                        market_fee_percent: poolAssets[1].options.market_fee_percent / 100,
+                    }
+                },
+                SHARE: {
+                    supply: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
+                    asset: {
+                        id: poolAssets[2].id,
+                        symbol: poolAssets[2].symbol,
+                        precision: poolAssets[2].precision,
+                        issuer: poolAssets[2].issuer,
+                        market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
+                        description: shareDesc,
+                    }
+                },
+            });
         }
-
-        try {
-            shareDesc = JSON.parse(poolAssets[2].options.description);
-        } catch (e) {
-
-        }
-
-        result.push({
-            POOL: pools[i],
-            A: {
-                balance: (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision),
-                asset: {
-                    id: poolAssets[0].id,
-                    symbol: poolAssets[0].symbol,
-                    precision: poolAssets[0].precision,
-                    issuer: poolAssets[0].issuer,
-                    market_fee_percent: poolAssets[0].options.market_fee_percent / 100,
-                }
-            },
-            B: {
-                balance: (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision),
-                asset: {
-                    id: poolAssets[1].id,
-                    symbol: poolAssets[1].symbol,
-                    precision: poolAssets[1].precision,
-                    issuer: poolAssets[1].issuer,
-                    market_fee_percent: poolAssets[1].options.market_fee_percent / 100,
-                }
-            },
-            SHARE: {
-                supply: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
-                asset: {
-                    id: poolAssets[2].id,
-                    symbol: poolAssets[2].symbol,
-                    precision: poolAssets[2].precision,
-                    issuer: poolAssets[2].issuer,
-                    market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
-                    description: shareDesc,
-                }
-            },
-        });
     }
     await res.json(result);
 });
