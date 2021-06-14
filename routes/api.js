@@ -352,6 +352,17 @@ router.get('/lps/:a', async function (req, res, next) {
     for (let i = 0; i < pools.length; i++) {
         const shareDynId = pools[i].share_asset.replace("1.3.", "2.3.");
         const poolAssets = await BitShares.db.get_objects([pools[i].asset_a, pools[i].asset_b, pools[i].share_asset, shareDynId]);
+        let shareDesc = {
+            main: "",
+            short_name: "",
+        }
+
+        try {
+            shareDesc = JSON.parse(poolAssets[2].options.description);
+        } catch (e) {
+
+        }
+
         result.push({
             POOL: pools[i],
             A: {
@@ -382,7 +393,7 @@ router.get('/lps/:a', async function (req, res, next) {
                     precision: poolAssets[2].precision,
                     issuer: poolAssets[2].issuer,
                     market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
-                    description: JSON.parse(poolAssets[2].options.description) || null,
+                    description: shareDesc,
                 }
             },
         });
