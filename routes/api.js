@@ -354,7 +354,7 @@ router.get('/lps/:a', async function (req, res, next) {
         const poolAssets = await BitShares.db.get_objects([pools[i].asset_a, pools[i].asset_b, pools[i].share_asset, shareDynId]);
         let shareDesc = {
             main: "",
-            short_name: "",
+            short_name: poolAssets[0].symbol + '/' + poolAssets[1].symbol + ' Liquidity Pool Token',
         }
 
         try {
