@@ -12,7 +12,7 @@ for (let i = 0; i < opKeys.length; i++) {
     operations[ChainTypes.operations[opKeys[i]]] = opKeys[i];
 }
 
-console.log(operations)
+//console.log(operations)
 
 BitShares.connect(CONFIG.node);
 BitShares.subscribe('connected', startAfterConnected);
@@ -235,14 +235,14 @@ router.get('/block/:height', async function (req, res, next) {
 });
 
 router.get('/holders/:symbol/:from/:to', async function (req, res, next) {
-   await res.json(await BitShares.holders(req.params['symbol'], req.params['from'], req.params['to']));
+    await res.json(await BitShares.holders(req.params['symbol'], req.params['from'], req.params['to']));
 });
 
 router.get('/object/:id', async function (req, res, next) {
     let result = null;
     try {
         result = await BitShares.db.get_objects([req.params['id']])
-    } catch(e) {
+    } catch (e) {
         result = e;
     }
 
@@ -254,7 +254,7 @@ router.post('/objects', async function (req, res, next) {
     let result = null;
     try {
         result = await BitShares.db.get_objects(req.body.objects)
-    } catch(e) {
+    } catch (e) {
         result = e;
     }
     await res.json(result);
@@ -264,7 +264,7 @@ router.get('/lp-history/:id', async function (req, res, next) {
     let result = null;
     try {
         result = await BitShares.history.get_liquidity_pool_history(req.params['id'])
-    } catch(e) {
+    } catch (e) {
         result = e;
     }
     await res.json(result);
@@ -274,7 +274,7 @@ router.post('/lp-history', async function (req, res, next) {
     let result = null;
     try {
         result = await BitShares.history.get_liquidity_pool_history(req.body.id, null, null, req.body.limit || 10, req.body.op)
-    } catch(e) {
+    } catch (e) {
         result = e;
     }
     await res.json(result);
@@ -284,7 +284,7 @@ router.post('/accounts', async function (req, res, next) {
     let result = null;
     try {
         result = await BitShares.db.get_full_accounts(req.body['ids'], false)
-    } catch(e) {
+    } catch (e) {
         result = e;
     }
     await res.json(result);
@@ -301,7 +301,7 @@ router.get('/lps-a/:asset', async function (req, res, next) {
     if (pools.length) {
         const a = await BitShares.db.get_objects([pools[0].asset_a]);
         let ids = [];
-        for (let i=0; i < pools.length; i++) {
+        for (let i = 0; i < pools.length; i++) {
             pools[i].a = {
                 symbol: a[0].symbol,
                 precision: a[0].precision,
@@ -309,7 +309,7 @@ router.get('/lps-a/:asset', async function (req, res, next) {
             ids.push(pools[i].asset_b);
         }
         const b = await BitShares.db.get_objects(ids);
-        for (let i=0; i < pools.length; i++) {
+        for (let i = 0; i < pools.length; i++) {
             pools[i].b = {
                 symbol: b[i].symbol,
                 precision: b[i].precision,
@@ -324,7 +324,7 @@ router.get('/lps-b/:asset', async function (req, res, next) {
     if (pools.length) {
         const b = await BitShares.db.get_objects([pools[1].asset_b]);
         let ids = [];
-        for (let i=0; i < pools.length; i++) {
+        for (let i = 0; i < pools.length; i++) {
             pools[i].b = {
                 symbol: b[0].symbol,
                 precision: b[0].precision,
@@ -332,7 +332,7 @@ router.get('/lps-b/:asset', async function (req, res, next) {
             ids.push(pools[i].asset_a);
         }
         const a = await BitShares.db.get_objects(ids);
-        for (let i=0; i < pools.length; i++) {
+        for (let i = 0; i < pools.length; i++) {
             pools[i].a = {
                 symbol: a[i].symbol,
                 precision: a[i].precision,
@@ -347,9 +347,29 @@ router.get('/lps-ab/:a/:b', async function (req, res, next) {
 });
 
 router.get('/lps/:a', async function (req, res, next) {
-    await res.json(await BitShares.db.get_liquidity_pools_by_one_asset(req.params['a']));
+    const pools = await BitShares.db.get_liquidity_pools_by_one_asset(req.params['a']);
+    let result = [];
+    for (let i = 0; i < pools.length; i++) {
+        const shareDynId = pools[i].share_asset.replace("1.3.", "2.3.");
+        const poolAssets = await BitShares.db.get_objects([pools[i].asset_a, pools[i].asset_b, pools[i].share_asset, shareDynId]);
+        result.push({
+            POOL: pools[i],
+            A: {
+                BALANCE: (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision),
+                ASSET: poolAssets[0]
+            },
+            B: {
+                BALANCE: (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision),
+                ASSET: poolAssets[1]
+            },
+            SHARE: {
+                SUPPLY: poolAssets[2]
+                ASSET: poolAssets[2]
+            },
+        });
+    }
+    await res.json(result);
 });
-
 
 
 module.exports = router;
