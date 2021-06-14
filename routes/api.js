@@ -356,15 +356,33 @@ router.get('/lps/:a', async function (req, res, next) {
             POOL: pools[i],
             A: {
                 BALANCE: (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision),
-                ASSET: poolAssets[0]
+                ASSET: {
+                    id: poolAssets[0].id,
+                    symbol: poolAssets[0].symbol,
+                    precision: poolAssets[0].precision,
+                    issuer: poolAssets[0].issuer,
+                    market_fee_percent: poolAssets[0].options.market_fee_percent / 100,
+                }
             },
             B: {
                 BALANCE: (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision),
-                ASSET: poolAssets[1]
+                ASSET: {
+                    id: poolAssets[1].id,
+                    symbol: poolAssets[1].symbol,
+                    precision: poolAssets[1].precision,
+                    issuer: poolAssets[1].issuer,
+                    market_fee_percent: poolAssets[1].options.market_fee_percent / 100,
+                }
             },
             SHARE: {
-                SUPPLY: poolAssets[2]
-                ASSET: poolAssets[2]
+                SUPPLY: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
+                ASSET: {
+                    id: poolAssets[2].id,
+                    symbol: poolAssets[2].symbol,
+                    precision: poolAssets[2].precision,
+                    issuer: poolAssets[2].issuer,
+                    market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
+                }
             },
         });
     }
