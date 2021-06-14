@@ -355,8 +355,8 @@ router.get('/lps/:a', async function (req, res, next) {
         result.push({
             POOL: pools[i],
             A: {
-                BALANCE: (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision),
-                ASSET: {
+                balance: (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision),
+                asset: {
                     id: poolAssets[0].id,
                     symbol: poolAssets[0].symbol,
                     precision: poolAssets[0].precision,
@@ -365,8 +365,8 @@ router.get('/lps/:a', async function (req, res, next) {
                 }
             },
             B: {
-                BALANCE: (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision),
-                ASSET: {
+                balance: (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision),
+                asset: {
                     id: poolAssets[1].id,
                     symbol: poolAssets[1].symbol,
                     precision: poolAssets[1].precision,
@@ -375,13 +375,14 @@ router.get('/lps/:a', async function (req, res, next) {
                 }
             },
             SHARE: {
-                SUPPLY: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
-                ASSET: {
+                supply: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
+                asset: {
                     id: poolAssets[2].id,
                     symbol: poolAssets[2].symbol,
                     precision: poolAssets[2].precision,
                     issuer: poolAssets[2].issuer,
                     market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
+                    description: JSON.parse(poolAssets[2].options.description) || null,
                 }
             },
         });
