@@ -386,11 +386,14 @@ router.get('/lps/:a', async function (req, res, next) {
             stats[i].statistics._24h_exchange_fee_a = stats[i].statistics._24h_exchange_fee_a / 10 ** poolAssets[0].precision;
             stats[i].statistics._24h_exchange_fee_b = stats[i].statistics._24h_exchange_fee_b / 10 ** poolAssets[1].precision;
 
+            const balanceA = (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision);
+            const balanceB = (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision);
+
             result.push({
                 POOL: pools[i],
                 STATS: stats[i].statistics,
                 A: {
-                    balance: (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision),
+                    balance: balanceA,
                     vol24: stats[i].statistics._24h_exchange_a2b_amount_a + stats[i].statistics._24h_exchange_b2a_amount_a,
                     fee24: stats[i].statistics._24h_withdrawal_fee_a + stats[i].statistics._24h_exchange_fee_a,
                     asset: {
@@ -402,7 +405,7 @@ router.get('/lps/:a', async function (req, res, next) {
                     }
                 },
                 B: {
-                    balance: (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision),
+                    balance: balanceB,
                     vol24: stats[i].statistics._24h_exchange_a2b_amount_b + stats[i].statistics._24h_exchange_b2a_amount_b,
                     fee24: stats[i].statistics._24h_withdrawal_fee_b + stats[i].statistics._24h_exchange_fee_b,
                     asset: {
