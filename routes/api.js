@@ -351,6 +351,13 @@ router.get('/lps-ab/:a/:b', async function (req, res, next) {
 router.get('/lps/:a', async function (req, res, next) {
     const pools = await BitShares.db.get_liquidity_pools_by_one_asset(req.params['a']);
     let result = [];
+    let shareIds = []
+    for (let i = 0; i < pools.length; i++) {
+        shareIds.push(pools[i].share_asset);
+    }
+
+    const stats = await BitShares.db.get_liquidity_pools_by_share_asset(shareIds, null, true);
+
     for (let i = 0; i < pools.length; i++) {
         if (!CONFIG.exclude[pools[i].id]) {
             const shareDynId = pools[i].share_asset.replace("1.3.", "2.3.");
@@ -366,8 +373,11 @@ router.get('/lps/:a', async function (req, res, next) {
 
             }
 
+
+
             result.push({
                 POOL: pools[i],
+                STATS: stats[i].statistics,
                 A: {
                     balance: (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision),
                     asset: {
@@ -397,7 +407,7 @@ router.get('/lps/:a', async function (req, res, next) {
                         issuer: poolAssets[2].issuer,
                         market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
                         description: shareDesc,
-                    }
+                    },
                 },
             });
         }
