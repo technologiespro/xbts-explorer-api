@@ -356,7 +356,7 @@ router.get('/lps/:a', async function (req, res, next) {
         shareIds.push(pools[i].share_asset);
     }
 
-    const stats = await BitShares.db.get_liquidity_pools_by_share_asset(shareIds, null, true);
+    let stats = await BitShares.db.get_liquidity_pools_by_share_asset(shareIds, null, true);
 
     for (let i = 0; i < pools.length; i++) {
         if (!CONFIG.exclude[pools[i].id]) {
@@ -374,12 +374,25 @@ router.get('/lps/:a', async function (req, res, next) {
             }
 
 
+            stats[i].statistics._24h_exchange_a2b_amount_a = stats[i].statistics._24h_exchange_a2b_amount_a / 10 ** poolAssets[0].precision;
+            stats[i].statistics._24h_exchange_a2b_amount_b = stats[i].statistics._24h_exchange_a2b_amount_b / 10 ** poolAssets[1].precision;
+
+            stats[i].statistics._24h_exchange_b2a_amount_a = stats[i].statistics._24h_exchange_b2a_amount_a / 10 ** poolAssets[0].precision;
+            stats[i].statistics._24h_exchange_b2a_amount_b = stats[i].statistics._24h_exchange_b2a_amount_b / 10 ** poolAssets[1].precision;
+
+            stats[i].statistics._24h_withdrawal_fee_a = stats[i].statistics._24h_withdrawal_fee_a / 10 ** poolAssets[0].precision;
+            stats[i].statistics._24h_withdrawal_fee_b = stats[i].statistics._24h_withdrawal_fee_b / 10 ** poolAssets[1].precision;
+
+            stats[i].statistics._24h_exchange_fee_a = stats[i].statistics._24h_exchange_fee_a / 10 ** poolAssets[0].precision;
+            stats[i].statistics._24h_exchange_fee_b = stats[i].statistics._24h_exchange_fee_b / 10 ** poolAssets[1].precision;
 
             result.push({
                 POOL: pools[i],
                 STATS: stats[i].statistics,
                 A: {
                     balance: (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision),
+                    vol24: stats[i].statistics._24h_exchange_a2b_amount_a + stats[i].statistics._24h_exchange_b2a_amount_a,
+                    fee24: stats[i].statistics._24h_withdrawal_fee_a + stats[i].statistics._24h_exchange_fee_a,
                     asset: {
                         id: poolAssets[0].id,
                         symbol: poolAssets[0].symbol,
@@ -390,6 +403,8 @@ router.get('/lps/:a', async function (req, res, next) {
                 },
                 B: {
                     balance: (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision),
+                    vol24: stats[i].statistics._24h_exchange_a2b_amount_b + stats[i].statistics._24h_exchange_b2a_amount_b,
+                    fee24: stats[i].statistics._24h_withdrawal_fee_b + stats[i].statistics._24h_exchange_fee_b,
                     asset: {
                         id: poolAssets[1].id,
                         symbol: poolAssets[1].symbol,
