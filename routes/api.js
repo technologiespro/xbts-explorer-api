@@ -389,9 +389,15 @@ router.get('/lps/:a', async function (req, res, next) {
             const balanceA = (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision);
             const balanceB = (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision);
 
+            const apyFeesExchangePercent = (((stats[i].statistics['_24h_exchange_fee_a'] / balanceA * 100 * 365) + (stats[i].statistics['_24h_exchange_fee_b'] / balanceB * 100 * 365)) / 2);
+            const apyFeesWithdrawalPercent = (((stats[i].statistics['_24h_withdrawal_fee_a'] / balanceA * 100 * 365) + (stats[i].statistics['_24h_withdrawal_fee_b'] / balanceB * 100 * 365)) / 2);
+            const apy = (apyFeesExchangePercent + apyFeesWithdrawalPercent).toFixed(2);
+
+
             result.push({
                 POOL: pools[i],
                 STATS: stats[i].statistics,
+                APY: apy,
                 A: {
                     balance: balanceA,
                     vol24: stats[i].statistics._24h_exchange_a2b_amount_a + stats[i].statistics._24h_exchange_b2a_amount_a,
