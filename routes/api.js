@@ -400,8 +400,8 @@ router.get('/lps/:a', async function (req, res, next) {
                 APY: apy,
                 A: {
                     balance: balanceA,
-                    vol24: stats[i].statistics._24h_exchange_a2b_amount_a + stats[i].statistics._24h_exchange_b2a_amount_a,
-                    fee24: stats[i].statistics._24h_withdrawal_fee_a + stats[i].statistics._24h_exchange_fee_a,
+                    vol24: (stats[i].statistics._24h_exchange_a2b_amount_a + stats[i].statistics._24h_exchange_b2a_amount_a).toFixed(poolAssets[0].precision),
+                    fee24: (stats[i].statistics._24h_withdrawal_fee_a + stats[i].statistics._24h_exchange_fee_a).toFixed(poolAssets[0].precision),
                     asset: {
                         id: poolAssets[0].id,
                         symbol: poolAssets[0].symbol,
@@ -412,8 +412,8 @@ router.get('/lps/:a', async function (req, res, next) {
                 },
                 B: {
                     balance: balanceB,
-                    vol24: stats[i].statistics._24h_exchange_a2b_amount_b + stats[i].statistics._24h_exchange_b2a_amount_b,
-                    fee24: stats[i].statistics._24h_withdrawal_fee_b + stats[i].statistics._24h_exchange_fee_b,
+                    vol24: (stats[i].statistics._24h_exchange_a2b_amount_b + stats[i].statistics._24h_exchange_b2a_amount_b).toFixed(poolAssets[1].precision),
+                    fee24: (stats[i].statistics._24h_withdrawal_fee_b + stats[i].statistics._24h_exchange_fee_b).toFixed(poolAssets[0].precision),
                     asset: {
                         id: poolAssets[1].id,
                         symbol: poolAssets[1].symbol,
