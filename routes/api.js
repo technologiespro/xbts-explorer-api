@@ -377,6 +377,16 @@ router.get('/lps-ab/:a/:b', async function (req, res, next) {
     await res.json(await BitShares.db.get_liquidity_pools_by_both_assets(req.params['a'], req.params['b'], null, null));
 });
 
+
+async function calcTotalAmount(symbol, balance) {
+    let amount = 0;
+    if (tickers['BTS_' + symbol.replace('XBTSX.', '')]) {
+        amount = tickers['BTS_' + symbol.replace('XBTSX.', '')].last * balance;
+    }
+    return amount;
+}
+
+
 router.get('/lps/:a', async function (req, res, next) {
     let pools = await BitShares.db.get_liquidity_pools_by_one_asset(req.params['a'], 101, null, true);
     //console.log(pools)
