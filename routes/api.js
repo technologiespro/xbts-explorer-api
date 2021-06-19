@@ -5,6 +5,8 @@ const jsonFile = require('jsonfile');
 const CONFIG = jsonFile.readFileSync('./config.json');
 const emitter = require('../emitter');
 const ChainTypes = require('bitsharesjs/dist/chain/src/ChainTypes.js');
+const axios = require('axios');
+const scheduler = require("node-schedule");
 
 const opKeys = Object.keys(ChainTypes.operations);
 let operations = [];
@@ -12,20 +14,39 @@ for (let i = 0; i < opKeys.length; i++) {
     operations[ChainTypes.operations[opKeys[i]]] = opKeys[i];
 }
 
+let tickers = [];
+
 //console.log(operations)
 
 BitShares.connect(CONFIG.node);
 BitShares.subscribe('connected', startAfterConnected);
 BitShares.subscribe('block', callEachBlock);
 
-console.log(CONFIG.exclude)
-
-
 let globalProperties = null;
 
 async function startAfterConnected() {
     globalProperties = await BitShares.db.get_global_properties();
 }
+
+async function getTickers() {
+    try {
+        tickers = (await axios.get('https://cmc.xbts.io/v2/tickers')).data.ticker;
+    } catch(e) {
+        console.log('err get tickers')
+    }
+    return tickers;
+}
+
+async function init() {
+    await getTickers();
+}
+
+init().then();
+
+scheduler.scheduleJob("1 */10 * * * *", async () => {
+    await getTickers();
+});
+
 
 async function callEachBlock(obj) {
     //console.log(obj[0])
@@ -138,6 +159,10 @@ async function callEachBlock(obj) {
 
     //console.log(result)
 }
+
+router.get('/tickers', async function (req, res, next) {
+    await res.json(tickers);
+});
 
 router.get('/global-properties', async function (req, res, next) {
     await res.json(globalProperties);
@@ -295,6 +320,10 @@ router.post('/accounts', async function (req, res, next) {
 
 router.get('/lp-apy/:id', async function (req, res, next) {
     await res.json(await BitShares.db.list_liquidity_pools(1, req.params['id'], true))
+});
+
+router.get('/lp-list/:from', async function (req, res, next) {
+    await res.json(await BitShares.db.list_liquidity_pools(100, req.params['from'], true))
 });
 
 router.get('/lps-a/:asset', async function (req, res, next) {
