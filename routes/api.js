@@ -379,9 +379,13 @@ router.get('/lps-ab/:a/:b', async function (req, res, next) {
 
 
 async function calcTotalAmount(symbol, balance) {
-    let amount = 0;
+    let amount = {
+        amount: 0,
+        price: 0,
+    };
     if (tickers['BTS_' + symbol.replace('XBTSX.', '')]) {
-        amount = tickers['BTS_' + symbol.replace('XBTSX.', '')].last * balance;
+        amount.amount = tickers['BTS_' + symbol.replace('XBTSX.', '')].last * balance;
+        amount.price = tickers['BTS_' + symbol.replace('XBTSX.', '')].last;
     }
     return amount;
 }
@@ -435,7 +439,21 @@ router.get('/lps/:a', async function (req, res, next) {
 
             const apyFeesExchangePercent = (((pools[i].statistics['_24h_exchange_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_exchange_fee_b'] / balanceB * 100 * 365)) / 2);
             const apyFeesWithdrawalPercent = (((pools[i].statistics['_24h_withdrawal_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_withdrawal_fee_b'] / balanceB * 100 * 365)) / 2);
-            const apy = (apyFeesExchangePercent + apyFeesWithdrawalPercent).toFixed(2);
+            const apy = (apyFeesExchangePercent + apyFeesWithdrawalPercent).toFixed(2) * 1;
+
+            let amount = {
+                amount: 0,
+                price: 0,
+            }
+
+            if (poolAssets[0].symbol === 'BTS') {
+                amount.amount = balanceA;
+                amount.price = 1;
+            } else {
+                amount = await calcTotalAmount(poolAssets[0].symbol, balanceA)
+            }
+
+
 
 
             result.push({
@@ -468,6 +486,8 @@ router.get('/lps/:a', async function (req, res, next) {
                 },
                 SHARE: {
                     supply: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
+                    amount: amount.amount * 2,
+                    price: amount.price,
                     asset: {
                         id: poolAssets[2].id,
                         symbol: poolAssets[2].symbol,
@@ -525,8 +545,18 @@ router.get('/lp-single/:a', async function (req, res, next) {
 
             const apyFeesExchangePercent = (((pools[i].statistics['_24h_exchange_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_exchange_fee_b'] / balanceB * 100 * 365)) / 2);
             const apyFeesWithdrawalPercent = (((pools[i].statistics['_24h_withdrawal_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_withdrawal_fee_b'] / balanceB * 100 * 365)) / 2);
-            const apy = (apyFeesExchangePercent + apyFeesWithdrawalPercent).toFixed(2);
+            const apy = (apyFeesExchangePercent + apyFeesWithdrawalPercent).toFixed(2) * 1;
+            let amount = {
+                amount: 0,
+                price: 0,
+            }
 
+            if (poolAssets[0].symbol === 'BTS') {
+                amount.amount = balanceA;
+                amount.price = 1;
+            } else {
+                amount = await calcTotalAmount(poolAssets[0].symbol, balanceA)
+            }
 
             result.push({
                 POOL: pools[i],
@@ -558,6 +588,8 @@ router.get('/lp-single/:a', async function (req, res, next) {
                 },
                 SHARE: {
                     supply: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
+                    amount: amount.amount * 2,
+                    price: amount.price,
                     asset: {
                         id: poolAssets[2].id,
                         symbol: poolAssets[2].symbol,
