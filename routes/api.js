@@ -577,7 +577,7 @@ router.get('/lp-single/:a', async function (req, res, next) {
                 B: {
                     balance: balanceB,
                     vol24: (pools[i].statistics._24h_exchange_a2b_amount_b + pools[i].statistics._24h_exchange_b2a_amount_b).toFixed(poolAssets[1].precision),
-                    fee24: (pools[i].statistics._24h_withdrawal_fee_b + pools[i].statistics._24h_exchange_fee_b).toFixed(poolAssets[0].precision),
+                    fee24: (pools[i].statistics._24h_withdrawal_fee_b + pools[i].statistics._24h_exchange_fee_b).toFixed(poolAssets[1].precision),
                     asset: {
                         id: poolAssets[1].id,
                         symbol: poolAssets[1].symbol,
