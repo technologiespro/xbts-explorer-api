@@ -18,7 +18,7 @@ router.get('/price/:ticker', async function (req, res, next) {
 
     }
 
-    if (cacheTickers[req.params["ticker"]].timestamp < dt) {
+    if (dt > cacheTickers[req.params["ticker"]].timestamp) {
         cacheTickers[req.params["ticker"]] = {
             timestamp: Math.floor(Date.now() / 1000),
             data: await getPricePaprika(req.params["ticker"])
