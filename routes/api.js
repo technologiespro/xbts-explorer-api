@@ -470,6 +470,7 @@ router.get('/lps/:a', async function (req, res, next) {
                         precision: poolAssets[0].precision,
                         issuer: poolAssets[0].issuer,
                         market_fee_percent: poolAssets[0].options.market_fee_percent / 100,
+                        bitAsset: !!poolAssets[0].bitasset_data_id
                     }
                 },
                 B: {
@@ -482,6 +483,7 @@ router.get('/lps/:a', async function (req, res, next) {
                         precision: poolAssets[1].precision,
                         issuer: poolAssets[1].issuer,
                         market_fee_percent: poolAssets[1].options.market_fee_percent / 100,
+                        bitAsset: !!poolAssets[1].bitasset_data_id
                     }
                 },
                 SHARE: {
