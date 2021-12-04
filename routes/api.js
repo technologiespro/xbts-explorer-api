@@ -31,7 +31,7 @@ async function startAfterConnected() {
 async function getTickers() {
     try {
         tickers = (await axios.get('https://cmc.xbts.io/v2/tickers')).data.ticker;
-    } catch(e) {
+    } catch (e) {
         console.log('err get tickers')
     }
     return tickers;
@@ -219,8 +219,8 @@ router.get('/asset-id/:id', async function (req, res, next) {
 });
 
 router.get('/asset-holders/:asset', async function (req, res, next) {
-    //let assetId = (await BitShares.assets[req.params['asset']]).id;
-    //let holders = await BitShares.holdersCount(req.params['asset'])
+    //const assetId = (await BitShares.assets[req.params['asset']]).id;
+    //const holders = await BitShares.holdersCount(req.params['asset'])
     await res.json();
     //await res.json(holders)
 });
@@ -452,8 +452,6 @@ router.get('/lps/:a', async function (req, res, next) {
             } else {
                 amount = await calcTotalAmount(poolAssets[0].symbol, balanceA)
             }
-
-
 
 
             result.push({
