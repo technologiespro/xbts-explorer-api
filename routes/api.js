@@ -32,7 +32,7 @@ async function getTickers() {
     try {
         tickers = (await axios.get('https://cmc.xbts.io/v2/tickers')).data.ticker;
     } catch (e) {
-        console.log('err get tickers')
+        console.log('err getTickers()')
     }
     return tickers;
 }
