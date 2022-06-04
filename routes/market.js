@@ -10,7 +10,12 @@ async function getPricePaprika(ticker) {
 }
 
 async function getPriceBinance(ticker) {
-    let data = await axios.get('https://api.binance.com/api/v1/ticker/price?symbol=' + ticker);
+    let data = await axios.get('https://api.binance.com/api/v1/ticker/price?symbol=' + ticker); // BTSUSDT
+    return data.data
+}
+
+async function getPriceXbts(ticker) {
+    let data = await axios.get('https://cmc.xbts.io/v2/tickers/' + ticker); // STH_BTS
     return data.data
 }
 
