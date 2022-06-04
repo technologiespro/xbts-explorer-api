@@ -24,6 +24,26 @@ async function getTickersXbts() {
     return data.data
 }
 
+let cacheXbtsPrices = {}
+router.get('/xbts-prices', async function (req, res, next) {
+    let dt = Math.floor(Date.now() / 1000) - 60 * 8;
+    if (!cacheXbtsPrices) {
+        cacheXbtsPrices = {
+            timestamp: 0,
+            ticker: {}
+        };
+    }
+
+    if (dt > cacheXbtsPrices.timestamp) {
+        cacheXbtsPrices.timestamp = Math.floor(Date.now() / 1000);
+        cacheXbtsPrices.ticker = (await getTickersXbts()).ticker;
+
+    }
+
+    await res.json(cacheXbtsPrices)
+
+});
+
 router.get('/price/:ticker', async function (req, res, next) {
     let dt = Math.floor(Date.now() / 1000) - 60 * 12;
 
