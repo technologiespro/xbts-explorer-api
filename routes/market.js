@@ -19,6 +19,11 @@ async function getPriceXbts(ticker) {
     return data.data
 }
 
+async function getTickersXbts() {
+    let data = await axios.get('https://cmc.xbts.io/v2/tickers'); // all tickers
+    return data.data
+}
+
 router.get('/price/:ticker', async function (req, res, next) {
     let dt = Math.floor(Date.now() / 1000) - 60 * 12;
 
