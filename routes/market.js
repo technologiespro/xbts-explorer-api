@@ -20,14 +20,14 @@ async function getPriceXbts(ticker) {
 }
 
 async function getTickersXbts() {
-    let data = await axios.get('https://cmc.xbts.io/v2/tickers'); // all tickers
+    const data = await axios.get('https://cmc.xbts.io/v2/tickers'); // all tickers
     return data.data
 }
 
 let cacheXbtsPrices = {}
 router.get('/xbts-prices', async function (req, res, next) {
     let dt = Math.floor(Date.now() / 1000) - 60 * 8;
-    if (!cacheXbtsPrices) {
+    if (!cacheXbtsPrices.timestamp) {
         cacheXbtsPrices = {
             timestamp: 0,
             ticker: {}
@@ -45,6 +45,7 @@ router.get('/xbts-prices', async function (req, res, next) {
 });
 
 router.get('/price/:ticker', async function (req, res, next) {
+    /*
     let dt = Math.floor(Date.now() / 1000) - 60 * 12;
 
     if (!cacheTickers[req.params["ticker"]]) {
@@ -64,6 +65,8 @@ router.get('/price/:ticker', async function (req, res, next) {
 
     await res.json(cacheTickers[req.params["ticker"]].data)
 
+     */
+res.json(null);
 });
 
 module.exports = router;
