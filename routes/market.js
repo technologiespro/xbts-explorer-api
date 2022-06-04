@@ -9,8 +9,13 @@ async function getPricePaprika(ticker) {
     return data.data
 }
 
+async function getPriceBinance(ticker) {
+    let data = await axios.get('https://api.binance.com/api/v1/ticker/price?symbol=' + ticker);
+    return data.data
+}
+
 router.get('/price/:ticker', async function (req, res, next) {
-    let dt = Math.floor(Date.now() / 1000) - 90;
+    let dt = Math.floor(Date.now() / 1000) - 60 * 12;
 
     if (!cacheTickers[req.params["ticker"]]) {
         cacheTickers[req.params["ticker"]]= {};
