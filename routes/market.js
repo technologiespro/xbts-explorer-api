@@ -33,15 +33,11 @@ router.get('/xbts-prices', async function (req, res, next) {
             ticker: {}
         };
     }
-
     if (dt > cacheXbtsPrices.timestamp) {
         cacheXbtsPrices.timestamp = Math.floor(Date.now() / 1000);
         cacheXbtsPrices.ticker = (await getTickersXbts()).ticker;
-
     }
-
     await res.json(cacheXbtsPrices)
-
 });
 
 router.get('/price/:ticker', async function (req, res, next) {
@@ -66,7 +62,7 @@ router.get('/price/:ticker', async function (req, res, next) {
     await res.json(cacheTickers[req.params["ticker"]].data)
 
      */
-res.json(null);
+    res.json(null);
 });
 
 module.exports = router;
