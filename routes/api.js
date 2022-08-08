@@ -569,6 +569,10 @@ router.get('/lp-single/:a', async function (req, res, next) {
                             precision: poolAssets[0].precision,
                             issuer: poolAssets[0].issuer,
                             market_fee_percent: poolAssets[0].options.market_fee_percent / 100,
+                            price: {
+                                volume: balanceB / balanceA,
+                                symbol: poolAssets[1].symbol
+                            }
                         }
                     },
                     B: {
@@ -581,6 +585,10 @@ router.get('/lp-single/:a', async function (req, res, next) {
                             precision: poolAssets[1].precision,
                             issuer: poolAssets[1].issuer,
                             market_fee_percent: poolAssets[1].options.market_fee_percent / 100,
+                            price: {
+                                volume: balanceA / balanceB,
+                                symbol: poolAssets[0].symbol
+                            }
                         }
                     },
                     SHARE: {
@@ -601,7 +609,7 @@ router.get('/lp-single/:a', async function (req, res, next) {
         }
         await res.json(result[0]);
     } catch(e) {
-        res.json([])
+        res.json(null)
     }
 
 });
