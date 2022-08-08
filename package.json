@@ -20,6 +20,7 @@
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "jsonfile": "^6.1.0",
+    "level": "^8.0.0",
     "morgan": "~1.9.1",
     "node-schedule": "^2.0.0",
     "secure-random": "^1.1.2",
