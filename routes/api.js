@@ -392,217 +392,218 @@ async function calcTotalAmount(symbol, balance) {
 
 
 router.get('/lps/:a', async function (req, res, next) {
-    let pools = await BitShares.db.get_liquidity_pools_by_one_asset(req.params['a'], 101, null, true);
-    //console.log(pools)
-    let result = [];
-    /*
-    let shareIds = []
-    for (let i = 0; i < pools.length; i++) {
-        shareIds.push(pools[i].share_asset);
-    }
-    let stats = await BitShares.db.get_liquidity_pools_by_share_asset(shareIds, null, true);
-    */
+    try {
+        let pools = await BitShares.db.get_liquidity_pools_by_one_asset(req.params['a'], 101, null, true);
+        let result = [];
+        for (let i = 0; i < pools.length; i++) {
+            if (!CONFIG.exclude[pools[i].id]) {
+                const shareDynId = pools[i].share_asset.replace("1.3.", "2.3.");
+                const poolAssets = await BitShares.db.get_objects([pools[i].asset_a, pools[i].asset_b, pools[i].share_asset, shareDynId]);
+                let shareDesc = {
+                    main: "",
+                    short_name: poolAssets[0].symbol + '/' + poolAssets[1].symbol + ' Liquidity Pool Token',
+                }
 
-    for (let i = 0; i < pools.length; i++) {
-        if (!CONFIG.exclude[pools[i].id]) {
-            const shareDynId = pools[i].share_asset.replace("1.3.", "2.3.");
-            const poolAssets = await BitShares.db.get_objects([pools[i].asset_a, pools[i].asset_b, pools[i].share_asset, shareDynId]);
-            let shareDesc = {
-                main: "",
-                short_name: poolAssets[0].symbol + '/' + poolAssets[1].symbol + ' Liquidity Pool Token',
-            }
+                try {
+                    shareDesc = JSON.parse(poolAssets[2].options.description);
+                } catch (e) {
 
-            try {
-                shareDesc = JSON.parse(poolAssets[2].options.description);
-            } catch (e) {
-
-            }
+                }
 
 
-            pools[i].statistics._24h_exchange_a2b_amount_a = pools[i].statistics._24h_exchange_a2b_amount_a / 10 ** poolAssets[0].precision;
-            pools[i].statistics._24h_exchange_a2b_amount_b = pools[i].statistics._24h_exchange_a2b_amount_b / 10 ** poolAssets[1].precision;
+                pools[i].statistics._24h_exchange_a2b_amount_a = pools[i].statistics._24h_exchange_a2b_amount_a / 10 ** poolAssets[0].precision;
+                pools[i].statistics._24h_exchange_a2b_amount_b = pools[i].statistics._24h_exchange_a2b_amount_b / 10 ** poolAssets[1].precision;
 
-            pools[i].statistics._24h_exchange_b2a_amount_a = pools[i].statistics._24h_exchange_b2a_amount_a / 10 ** poolAssets[0].precision;
-            pools[i].statistics._24h_exchange_b2a_amount_b = pools[i].statistics._24h_exchange_b2a_amount_b / 10 ** poolAssets[1].precision;
+                pools[i].statistics._24h_exchange_b2a_amount_a = pools[i].statistics._24h_exchange_b2a_amount_a / 10 ** poolAssets[0].precision;
+                pools[i].statistics._24h_exchange_b2a_amount_b = pools[i].statistics._24h_exchange_b2a_amount_b / 10 ** poolAssets[1].precision;
 
-            pools[i].statistics._24h_withdrawal_fee_a = pools[i].statistics._24h_withdrawal_fee_a / 10 ** poolAssets[0].precision;
-            pools[i].statistics._24h_withdrawal_fee_b = pools[i].statistics._24h_withdrawal_fee_b / 10 ** poolAssets[1].precision;
+                pools[i].statistics._24h_withdrawal_fee_a = pools[i].statistics._24h_withdrawal_fee_a / 10 ** poolAssets[0].precision;
+                pools[i].statistics._24h_withdrawal_fee_b = pools[i].statistics._24h_withdrawal_fee_b / 10 ** poolAssets[1].precision;
 
-            pools[i].statistics._24h_exchange_fee_a = pools[i].statistics._24h_exchange_fee_a / 10 ** poolAssets[0].precision;
-            pools[i].statistics._24h_exchange_fee_b = pools[i].statistics._24h_exchange_fee_b / 10 ** poolAssets[1].precision;
+                pools[i].statistics._24h_exchange_fee_a = pools[i].statistics._24h_exchange_fee_a / 10 ** poolAssets[0].precision;
+                pools[i].statistics._24h_exchange_fee_b = pools[i].statistics._24h_exchange_fee_b / 10 ** poolAssets[1].precision;
 
-            pools[i].statistics._24h_deposit_amount_a = pools[i].statistics._24h_deposit_amount_a / 10 ** poolAssets[0].precision;
-            pools[i].statistics._24h_deposit_amount_b = pools[i].statistics._24h_deposit_amount_b / 10 ** poolAssets[1].precision;
+                pools[i].statistics._24h_deposit_amount_a = pools[i].statistics._24h_deposit_amount_a / 10 ** poolAssets[0].precision;
+                pools[i].statistics._24h_deposit_amount_b = pools[i].statistics._24h_deposit_amount_b / 10 ** poolAssets[1].precision;
 
-            const balanceA = (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision);
-            const balanceB = (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision);
+                const balanceA = (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision);
+                const balanceB = (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision);
 
-            const apyFeesExchangePercent = (((pools[i].statistics['_24h_exchange_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_exchange_fee_b'] / balanceB * 100 * 365)) / 2);
-            const apyFeesWithdrawalPercent = (((pools[i].statistics['_24h_withdrawal_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_withdrawal_fee_b'] / balanceB * 100 * 365)) / 2);
-            const apy = (apyFeesExchangePercent + apyFeesWithdrawalPercent).toFixed(2) * 1;
+                const apyFeesExchangePercent = (((pools[i].statistics['_24h_exchange_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_exchange_fee_b'] / balanceB * 100 * 365)) / 2);
+                const apyFeesWithdrawalPercent = (((pools[i].statistics['_24h_withdrawal_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_withdrawal_fee_b'] / balanceB * 100 * 365)) / 2);
+                const apy = (apyFeesExchangePercent + apyFeesWithdrawalPercent).toFixed(2) * 1;
 
-            let amount = {
-                amount: 0,
-                price: 0,
-            }
+                let amount = {
+                    amount: 0,
+                    price: 0,
+                }
 
-            if (poolAssets[0].symbol === 'BTS') {
-                amount.amount = balanceA;
-                amount.price = 1;
-            } else {
-                amount = await calcTotalAmount(poolAssets[0].symbol, balanceA)
-            }
+                if (poolAssets[0].symbol === 'BTS') {
+                    amount.amount = balanceA;
+                    amount.price = 1;
+                } else {
+                    amount = await calcTotalAmount(poolAssets[0].symbol, balanceA)
+                }
 
 
-            result.push({
-                POOL: pools[i],
-                //STATS: pools[i].statistics,
-                APY: apy,
-                A: {
-                    balance: balanceA,
-                    vol24: (pools[i].statistics._24h_exchange_a2b_amount_a + pools[i].statistics._24h_exchange_b2a_amount_a).toFixed(poolAssets[0].precision),
-                    fee24: (pools[i].statistics._24h_withdrawal_fee_a + pools[i].statistics._24h_exchange_fee_a).toFixed(poolAssets[0].precision),
-                    asset: {
-                        id: poolAssets[0].id,
-                        symbol: poolAssets[0].symbol,
-                        precision: poolAssets[0].precision,
-                        issuer: poolAssets[0].issuer,
-                        market_fee_percent: poolAssets[0].options.market_fee_percent / 100,
-                        bitAsset: !!poolAssets[0].bitasset_data_id
-                    }
-                },
-                B: {
-                    balance: balanceB,
-                    vol24: (pools[i].statistics._24h_exchange_a2b_amount_b + pools[i].statistics._24h_exchange_b2a_amount_b).toFixed(poolAssets[1].precision),
-                    fee24: (pools[i].statistics._24h_withdrawal_fee_b + pools[i].statistics._24h_exchange_fee_b).toFixed(poolAssets[1].precision),
-                    asset: {
-                        id: poolAssets[1].id,
-                        symbol: poolAssets[1].symbol,
-                        precision: poolAssets[1].precision,
-                        issuer: poolAssets[1].issuer,
-                        market_fee_percent: poolAssets[1].options.market_fee_percent / 100,
-                        bitAsset: !!poolAssets[1].bitasset_data_id
-                    }
-                },
-                SHARE: {
-                    supply: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
-                    amount: amount.amount * 2,
-                    price: amount.price,
-                    asset: {
-                        id: poolAssets[2].id,
-                        symbol: poolAssets[2].symbol,
-                        precision: poolAssets[2].precision,
-                        issuer: poolAssets[2].issuer,
-                        market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
-                        description: shareDesc,
+                result.push({
+                    POOL: pools[i],
+                    //STATS: pools[i].statistics,
+                    APY: apy,
+                    A: {
+                        balance: balanceA,
+                        vol24: (pools[i].statistics._24h_exchange_a2b_amount_a + pools[i].statistics._24h_exchange_b2a_amount_a).toFixed(poolAssets[0].precision),
+                        fee24: (pools[i].statistics._24h_withdrawal_fee_a + pools[i].statistics._24h_exchange_fee_a).toFixed(poolAssets[0].precision),
+                        asset: {
+                            id: poolAssets[0].id,
+                            symbol: poolAssets[0].symbol,
+                            precision: poolAssets[0].precision,
+                            issuer: poolAssets[0].issuer,
+                            market_fee_percent: poolAssets[0].options.market_fee_percent / 100,
+                            bitAsset: !!poolAssets[0].bitasset_data_id
+                        }
                     },
-                },
-            });
+                    B: {
+                        balance: balanceB,
+                        vol24: (pools[i].statistics._24h_exchange_a2b_amount_b + pools[i].statistics._24h_exchange_b2a_amount_b).toFixed(poolAssets[1].precision),
+                        fee24: (pools[i].statistics._24h_withdrawal_fee_b + pools[i].statistics._24h_exchange_fee_b).toFixed(poolAssets[1].precision),
+                        asset: {
+                            id: poolAssets[1].id,
+                            symbol: poolAssets[1].symbol,
+                            precision: poolAssets[1].precision,
+                            issuer: poolAssets[1].issuer,
+                            market_fee_percent: poolAssets[1].options.market_fee_percent / 100,
+                            bitAsset: !!poolAssets[1].bitasset_data_id
+                        }
+                    },
+                    SHARE: {
+                        supply: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
+                        amount: amount.amount * 2,
+                        price: amount.price,
+                        asset: {
+                            id: poolAssets[2].id,
+                            symbol: poolAssets[2].symbol,
+                            precision: poolAssets[2].precision,
+                            issuer: poolAssets[2].issuer,
+                            market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
+                            description: shareDesc,
+                        },
+                    },
+                });
+            }
         }
+        await res.json(result);
+    } catch(e) {
+        res.json([]);
     }
-    await res.json(result);
+
 });
 
 router.get('/lp-single/:a', async function (req, res, next) {
-    let pools = await BitShares.db.get_liquidity_pools_by_share_asset([req.params['a']], null, true);
-    let result = [];
-    for (let i = 0; i < pools.length; i++) {
-        if (!CONFIG.exclude[pools[i].id]) {
-            const shareDynId = pools[i].share_asset.replace("1.3.", "2.3.");
-            const poolAssets = await BitShares.db.get_objects([pools[i].asset_a, pools[i].asset_b, pools[i].share_asset, shareDynId]);
-            let shareDesc = {
-                main: "",
-                short_name: poolAssets[0].symbol + '/' + poolAssets[1].symbol + ' Liquidity Pool Token',
-            }
+    try {
+        let pools = await BitShares.db.get_liquidity_pools_by_share_asset([req.params['a']], null, true);
+        let result = [];
+        for (let i = 0; i < pools.length; i++) {
+            if (!CONFIG.exclude[pools[i].id]) {
+                const shareDynId = pools[i].share_asset.replace("1.3.", "2.3.");
+                const poolAssets = await BitShares.db.get_objects([pools[i].asset_a, pools[i].asset_b, pools[i].share_asset, shareDynId]);
+                let shareDesc = {
+                    main: "",
+                    short_name: poolAssets[0].symbol + '/' + poolAssets[1].symbol + ' Liquidity Pool Token',
+                }
 
-            try {
-                shareDesc = JSON.parse(poolAssets[2].options.description);
-            } catch (e) {
+                try {
+                    shareDesc = JSON.parse(poolAssets[2].options.description);
+                } catch (e) {
 
-            }
+                }
 
 
-            pools[i].statistics._24h_exchange_a2b_amount_a = pools[i].statistics._24h_exchange_a2b_amount_a / 10 ** poolAssets[0].precision;
-            pools[i].statistics._24h_exchange_a2b_amount_b = pools[i].statistics._24h_exchange_a2b_amount_b / 10 ** poolAssets[1].precision;
+                pools[i].statistics._24h_exchange_a2b_amount_a = pools[i].statistics._24h_exchange_a2b_amount_a / 10 ** poolAssets[0].precision;
+                pools[i].statistics._24h_exchange_a2b_amount_b = pools[i].statistics._24h_exchange_a2b_amount_b / 10 ** poolAssets[1].precision;
 
-            pools[i].statistics._24h_exchange_b2a_amount_a = pools[i].statistics._24h_exchange_b2a_amount_a / 10 ** poolAssets[0].precision;
-            pools[i].statistics._24h_exchange_b2a_amount_b = pools[i].statistics._24h_exchange_b2a_amount_b / 10 ** poolAssets[1].precision;
+                pools[i].statistics._24h_exchange_b2a_amount_a = pools[i].statistics._24h_exchange_b2a_amount_a / 10 ** poolAssets[0].precision;
+                pools[i].statistics._24h_exchange_b2a_amount_b = pools[i].statistics._24h_exchange_b2a_amount_b / 10 ** poolAssets[1].precision;
 
-            pools[i].statistics._24h_withdrawal_fee_a = pools[i].statistics._24h_withdrawal_fee_a / 10 ** poolAssets[0].precision;
-            pools[i].statistics._24h_withdrawal_fee_b = pools[i].statistics._24h_withdrawal_fee_b / 10 ** poolAssets[1].precision;
+                pools[i].statistics._24h_withdrawal_fee_a = pools[i].statistics._24h_withdrawal_fee_a / 10 ** poolAssets[0].precision;
+                pools[i].statistics._24h_withdrawal_fee_b = pools[i].statistics._24h_withdrawal_fee_b / 10 ** poolAssets[1].precision;
 
-            pools[i].statistics._24h_exchange_fee_a = pools[i].statistics._24h_exchange_fee_a / 10 ** poolAssets[0].precision;
-            pools[i].statistics._24h_exchange_fee_b = pools[i].statistics._24h_exchange_fee_b / 10 ** poolAssets[1].precision;
+                pools[i].statistics._24h_exchange_fee_a = pools[i].statistics._24h_exchange_fee_a / 10 ** poolAssets[0].precision;
+                pools[i].statistics._24h_exchange_fee_b = pools[i].statistics._24h_exchange_fee_b / 10 ** poolAssets[1].precision;
 
-            pools[i].statistics._24h_deposit_amount_a = pools[i].statistics._24h_deposit_amount_a / (10 ** poolAssets[0].precision);
-            pools[i].statistics._24h_deposit_amount_b = pools[i].statistics._24h_deposit_amount_b / (10 ** poolAssets[1].precision);
+                pools[i].statistics._24h_deposit_amount_a = pools[i].statistics._24h_deposit_amount_a / (10 ** poolAssets[0].precision);
+                pools[i].statistics._24h_deposit_amount_b = pools[i].statistics._24h_deposit_amount_b / (10 ** poolAssets[1].precision);
 
-            pools[i].statistics._24h_withdrawal_amount_a = pools[i].statistics._24h_withdrawal_amount_a / (10 ** poolAssets[0].precision);
-            pools[i].statistics._24h_withdrawal_amount_b = pools[i].statistics._24h_withdrawal_amount_b / (10 ** poolAssets[1].precision);
+                pools[i].statistics._24h_withdrawal_amount_a = pools[i].statistics._24h_withdrawal_amount_a / (10 ** poolAssets[0].precision);
+                pools[i].statistics._24h_withdrawal_amount_b = pools[i].statistics._24h_withdrawal_amount_b / (10 ** poolAssets[1].precision);
 
-            const balanceA = (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision);
-            const balanceB = (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision);
+                const balanceA = (pools[i].balance_a / 10 ** poolAssets[0].precision).toFixed(poolAssets[0].precision);
+                const balanceB = (pools[i].balance_b / 10 ** poolAssets[1].precision).toFixed(poolAssets[1].precision);
 
-            const apyFeesExchangePercent = (((pools[i].statistics['_24h_exchange_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_exchange_fee_b'] / balanceB * 100 * 365)) / 2);
-            const apyFeesWithdrawalPercent = (((pools[i].statistics['_24h_withdrawal_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_withdrawal_fee_b'] / balanceB * 100 * 365)) / 2);
-            const apy = (apyFeesExchangePercent + apyFeesWithdrawalPercent).toFixed(2) * 1;
-            let amount = {
-                amount: 0,
-                price: 0,
-            }
+                const apyFeesExchangePercent = (((pools[i].statistics['_24h_exchange_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_exchange_fee_b'] / balanceB * 100 * 365)) / 2);
+                const apyFeesWithdrawalPercent = (((pools[i].statistics['_24h_withdrawal_fee_a'] / balanceA * 100 * 365) + (pools[i].statistics['_24h_withdrawal_fee_b'] / balanceB * 100 * 365)) / 2);
+                const apy = (apyFeesExchangePercent + apyFeesWithdrawalPercent).toFixed(2) * 1;
+                let amount = {
+                    amount: 0,
+                    price: 0,
+                }
 
-            if (poolAssets[0].symbol === 'BTS') {
-                amount.amount = balanceA;
-                amount.price = 1;
-            } else {
-                amount = await calcTotalAmount(poolAssets[0].symbol, balanceA)
-            }
+                if (poolAssets[0].symbol === 'BTS') {
+                    amount.amount = balanceA;
+                    amount.price = 1;
+                } else {
+                    amount = await calcTotalAmount(poolAssets[0].symbol, balanceA)
+                }
 
-            result.push({
-                POOL: pools[i],
-                //STATS: pools[i].statistics,
-                APY: apy,
-                A: {
-                    balance: balanceA,
-                    vol24: (pools[i].statistics._24h_exchange_a2b_amount_a + pools[i].statistics._24h_exchange_b2a_amount_a).toFixed(poolAssets[0].precision),
-                    fee24: (pools[i].statistics._24h_withdrawal_fee_a + pools[i].statistics._24h_exchange_fee_a).toFixed(poolAssets[0].precision),
-                    asset: {
-                        id: poolAssets[0].id,
-                        symbol: poolAssets[0].symbol,
-                        precision: poolAssets[0].precision,
-                        issuer: poolAssets[0].issuer,
-                        market_fee_percent: poolAssets[0].options.market_fee_percent / 100,
-                    }
-                },
-                B: {
-                    balance: balanceB,
-                    vol24: (pools[i].statistics._24h_exchange_a2b_amount_b + pools[i].statistics._24h_exchange_b2a_amount_b).toFixed(poolAssets[1].precision),
-                    fee24: (pools[i].statistics._24h_withdrawal_fee_b + pools[i].statistics._24h_exchange_fee_b).toFixed(poolAssets[1].precision),
-                    asset: {
-                        id: poolAssets[1].id,
-                        symbol: poolAssets[1].symbol,
-                        precision: poolAssets[1].precision,
-                        issuer: poolAssets[1].issuer,
-                        market_fee_percent: poolAssets[1].options.market_fee_percent / 100,
-                    }
-                },
-                SHARE: {
-                    supply: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
-                    amount: amount.amount * 2,
-                    price: amount.price,
-                    asset: {
-                        id: poolAssets[2].id,
-                        symbol: poolAssets[2].symbol,
-                        precision: poolAssets[2].precision,
-                        issuer: poolAssets[2].issuer,
-                        market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
-                        description: shareDesc,
+                result.push({
+                    POOL: pools[i],
+                    //STATS: pools[i].statistics,
+                    APY: apy,
+                    A: {
+                        balance: balanceA,
+                        vol24: (pools[i].statistics._24h_exchange_a2b_amount_a + pools[i].statistics._24h_exchange_b2a_amount_a).toFixed(poolAssets[0].precision),
+                        fee24: (pools[i].statistics._24h_withdrawal_fee_a + pools[i].statistics._24h_exchange_fee_a).toFixed(poolAssets[0].precision),
+                        asset: {
+                            id: poolAssets[0].id,
+                            symbol: poolAssets[0].symbol,
+                            precision: poolAssets[0].precision,
+                            issuer: poolAssets[0].issuer,
+                            market_fee_percent: poolAssets[0].options.market_fee_percent / 100,
+                        }
                     },
-                },
-            });
+                    B: {
+                        balance: balanceB,
+                        vol24: (pools[i].statistics._24h_exchange_a2b_amount_b + pools[i].statistics._24h_exchange_b2a_amount_b).toFixed(poolAssets[1].precision),
+                        fee24: (pools[i].statistics._24h_withdrawal_fee_b + pools[i].statistics._24h_exchange_fee_b).toFixed(poolAssets[1].precision),
+                        asset: {
+                            id: poolAssets[1].id,
+                            symbol: poolAssets[1].symbol,
+                            precision: poolAssets[1].precision,
+                            issuer: poolAssets[1].issuer,
+                            market_fee_percent: poolAssets[1].options.market_fee_percent / 100,
+                        }
+                    },
+                    SHARE: {
+                        supply: (poolAssets[3].current_supply / 10 ** poolAssets[2].precision).toFixed(poolAssets[2].precision),
+                        amount: amount.amount * 2,
+                        price: amount.price,
+                        asset: {
+                            id: poolAssets[2].id,
+                            symbol: poolAssets[2].symbol,
+                            precision: poolAssets[2].precision,
+                            issuer: poolAssets[2].issuer,
+                            market_fee_percent: poolAssets[2].options.market_fee_percent / 100,
+                            description: shareDesc,
+                        },
+                    },
+                });
+            }
         }
+        await res.json(result[0]);
+    } catch(e) {
+        res.json([])
     }
-    await res.json(result[0]);
+
 });
 
 
