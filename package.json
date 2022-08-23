@@ -2,7 +2,7 @@
   "name": "xbts-explorer-api",
   "version": "0.0.3",
   "private": true,
-  "description": "BitShares Block Explorer",
+  "description": "BitShares Block Explorer API",
   "homepage": "https://xbts.io",
   "author": "TechnoL0g <technolog@smartholdem.io>",
   "scripts": {
