@@ -383,9 +383,9 @@ async function calcTotalAmount(symbol, balance) {
         amount: 0,
         price: 0,
     };
-    if (tickers['BTS_' + symbol.replace('XBTSX.', '')]) {
-        amount.amount = tickers['BTS_' + symbol.replace('XBTSX.', '')].last * balance;
-        amount.price = tickers['BTS_' + symbol.replace('XBTSX.', '')].last;
+    if (tickers['BTS_' + symbol.replace('XBTSX.', '').replace('GDEX.', '')]) {
+        amount.amount = tickers['BTS_' + symbol.replace('XBTSX.', '').replace('GDEX.', '')].last * balance;
+        amount.price = tickers['BTS_' + symbol.replace('XBTSX.', '').replace('GDEX.', '')].last;
     }
     return amount;
 }
@@ -442,7 +442,10 @@ router.get('/lps/:a', async function (req, res, next) {
                     amount.amount = balanceA;
                     amount.price = 1;
                 } else {
-                    amount = await calcTotalAmount(poolAssets[0].symbol, balanceA)
+                    amount = await calcTotalAmount(poolAssets[0].symbol, balanceA);
+                    if (amount.amount === 0) {
+                        amount = await calcTotalAmount(poolAssets[1].symbol, balanceB); // зеркальная цена по второму активу
+                    }
                 }
 
 
