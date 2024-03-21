@@ -41,7 +41,7 @@ function wsStart() {
 
 
     wss.on('connection', (ws) => {
-        console.log('ws connect');
+        //console.log('ws connect');
         ws.isAlive = true;
         ws.on('pong', heartbeat);
         //console.log(req.url)

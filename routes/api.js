@@ -87,8 +87,8 @@ async function callEachBlock(obj) {
                         amount: op.min_to_receive.amount / 10 ** assetReceive.precision,
                         p: assetReceive.precision
                     },
-                    price: ((op.min_to_receive.amount / 10 ** assetReceive.precision) / (op.amount_to_sell.amount / 10 ** assetSell.precision)).toFixed(assetSell.precision)
-
+                    price: ((op.min_to_receive.amount / 10 ** assetReceive.precision) / (op.amount_to_sell.amount / 10 ** assetSell.precision)).toFixed(assetSell.precision),
+                    expiration: op.expiration,
                 }
                 //console.log('ext', ext)
             }
@@ -140,7 +140,6 @@ async function callEachBlock(obj) {
                 block: obj[0].head_block_number,
                 ext: ext,
                 fee: fee,
-
             })
         }
     }
@@ -181,13 +180,27 @@ router.get('/chain', async function (req, res, next) {
 });
 
 router.get('/get-account/:account', async function (req, res, next) {
-    const account = await BitShares.accounts[req.params.account];
-    const ops = await BitShares.history.get_account_history(account.id, "1.11.0", 10, "1.11.0");
-    await res.json({
-        account: account,
-        history: ops
-    });
+
+    try {
+        const account = await BitShares.accounts[req.params.account];
+        if (account) {
+            const ops = await BitShares.history.get_account_history(account.id, "1.11.0", 10, "1.11.0");
+            await res.json({
+                account: account,
+                history: ops
+            });
+        } else {
+            await res.json(null)
+        }
+    } catch (e) {
+        await res.json(null)
+    }
+
+
+
+
 });
+
 
 router.get('/ticker/:s1/:s2', async function (req, res, next) {
     await res.json(await BitShares.ticker(req.params['s1'], req.params['s2']))
@@ -218,10 +231,49 @@ router.get('/asset-id/:id', async function (req, res, next) {
     await res.json(await BitShares.assets.id(req.params['id']));
 });
 
-router.get('/asset-holders/:asset', async function (req, res, next) {
-    //const assetId = (await BitShares.assets[req.params['asset']]).id;
-    //const holders = await BitShares.holdersCount(req.params['asset'])
-    await res.json();
+router.get('/orders-limit/:quote/:base', async function (req, res, next) {
+    let ords = await BitShares.getLimitOrders(req.params['quote'], req.params['base'], 100);
+    let resultQuote = [];
+    let resultBase = [];
+    const assetQuote = (await BitShares.assets[req.params['quote']]);
+    const assetBase = (await BitShares.assets[req.params['base']]);
+    for (let i=0; i < ords.length; i++) {
+        let rez = await BitShares.db.get_objects([ords[i].seller]);
+        if (ords[i].sell_price.base.asset_id === assetQuote.id) {
+            resultQuote.push({
+                name: rez[0].name,
+                amount: ords[i].for_sale / 10 ** assetQuote.precision,
+            });
+        }
+
+
+        console.log(ords[i])
+    }
+
+
+    await res.json({
+        quote: resultQuote,
+    })
+});
+
+router.get('/asset-holders/:asset/:from/:limit', async function (req, res, next) {
+    const holders = await BitShares.holders(req.params['asset'], req.params['from'], req.params['limit']);
+    const asset = (await BitShares.assets[req.params['asset']]);
+    const holdersCount = await BitShares.holdersCount(req.params['asset']);
+
+    let topHolders = [];
+    for (let i=0; i < holders.length; i++) {
+        topHolders.push({
+            name: holders[i].name,
+            account_id: holders[i].account_id,
+            amount: holders[i].amount / 10 ** asset.precision,
+        })
+    }
+    await res.json({
+        total: holdersCount,
+        asset: asset,
+        topHolders: topHolders,
+    });
     //await res.json(holders)
 });
 
@@ -230,34 +282,73 @@ router.get('/block/:height', async function (req, res, next) {
     const witness = (await BitShares.db.get_objects([block.witness]))[0];
     const user = (await BitShares.db.get_objects([witness.witness_account]))[0];
     let txs = [];
+    let assets = {};
+
     for (let i = 0; i < block.transactions.length; i++) {
-        console.log(block.transactions[i].operations[0][1]);
-        let account = null;
-        if (block.transactions[i].operations[0][1].fee_paying_account) {
-            account = (await BitShares.db.get_objects([block.transactions[i].operations[0][1].fee_paying_account]))[0]
-        }
+        //console.log(block.transactions[i].operations[0][1]);
 
-        if (block.transactions[i].operations[0][1].publisher) {
-            account = (await BitShares.db.get_objects([block.transactions[i].operations[0][1].publisher]))[0]
-        }
 
-        if (block.transactions[i].operations[0][1].seller) {
-            account = (await BitShares.db.get_objects([block.transactions[i].operations[0][1].seller]))[0]
+        let ops = [];
+        for (let j=0; j < block.transactions[i].operations.length; j++) {
+            let account = null;
+
+            if (block.transactions[i].operations[j][0] === 0) {
+                account = (await BitShares.db.get_objects([block.transactions[i].operations[j][1].from]))[0];
+            }
+
+            if (block.transactions[i].operations[j][1].fee_paying_account) {
+                account = (await BitShares.db.get_objects([block.transactions[i].operations[j][1].fee_paying_account]))[0]
+            }
+
+            if (block.transactions[i].operations[j][1].publisher) {
+                account = (await BitShares.db.get_objects([block.transactions[i].operations[j][1].publisher]))[0]
+            }
+
+            if (block.transactions[i].operations[j][1].seller) {
+                account = (await BitShares.db.get_objects([block.transactions[i].operations[j][1].seller]))[0]
+            }
+
+            if (block.transactions[i].operations[j][0] > 58 &&  block.transactions[i].operations[j][0] < 64) {
+                account = (await BitShares.db.get_objects([block.transactions[i].operations[j][1].account]))[0];
+                //console.log(block.transactions[i].operations[j][1].account)
+            }
+
+            let fee = block.transactions[i].operations[j][1].fee;
+            if (!assets[fee.asset_id]) {
+                assets[fee.asset_id] = (await BitShares.db.get_objects([fee.asset_id]))[0];
+                //console.log(assets)
+            }
+
+            ops.push({
+                opId: block.transactions[i].operations[j][0],
+                fee: {
+                    amount: (fee.amount / (10 ** assets[fee.asset_id].precision)),
+                    symbol: assets[fee.asset_id].symbol,
+                },
+                account: account ? account.name: null,
+                op: operations[block.transactions[i].operations[j][0]],
+                data: block.transactions[i].operations[j][1]
+            });
         }
 
         txs.push({
-            order: block.transactions[i].operations[0][1].order,
-            op: operations[block.transactions[i].operations[0][0]],
-            account: account
+            account: ops[0].account,
+            ops: ops,
+            //order: block.transactions[i].operations[0][1].order,
+            //op: operations[block.transactions[i].operations[0][0]],
+
         });
     }
     await res.json({
+        witness: {
+            user: {
+                name: user.name,
+                id: user.id,
+            },
+            witness_account: witness,
+        },
+        txs: txs,
         raw: block,
-        data: {
-            witness: witness,
-            user: user,
-            txs: txs
-        }
     });
 });
 
@@ -377,7 +468,6 @@ router.get('/lps-ab/:a/:b', async function (req, res, next) {
     await res.json(await BitShares.db.get_liquidity_pools_by_both_assets(req.params['a'], req.params['b'], null, null));
 });
 
-
 async function calcTotalAmount(symbol, balance) {
     let amount = {
         amount: 0,
@@ -389,7 +479,6 @@ async function calcTotalAmount(symbol, balance) {
     }
     return amount;
 }
-
 
 router.get('/lps/:a', async function (req, res, next) {
     try {
