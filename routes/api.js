@@ -257,9 +257,24 @@ router.get('/orders-limit/:quote/:base', async function (req, res, next) {
 });
 
 router.get('/asset-holders/:asset/:from/:limit', async function (req, res, next) {
+    let result = {
+        total: 0,
+        asset: null,
+        topHolders: {},
+    }
+
     const holders = await BitShares.holders(req.params['asset'], req.params['from'], req.params['limit']);
     const asset = (await BitShares.assets[req.params['asset']]);
-    const holdersCount = await BitShares.holdersCount(req.params['asset']);
+
+
+
+    try {
+        result.total = await BitShares.holdersCount(req.params['asset']);
+
+    } catch(e) {
+        console.log('err: holders count')
+    }
+
 
     let topHolders = [];
     for (let i=0; i < holders.length; i++) {
@@ -269,11 +284,16 @@ router.get('/asset-holders/:asset/:from/:limit', async function (req, res, next)
             amount: holders[i].amount / 10 ** asset.precision,
         })
     }
-    await res.json({
-        total: holdersCount,
-        asset: asset,
-        topHolders: topHolders,
-    });
+
+
+    result.asset = {
+        id: asset.id,
+        "symbol": asset.symbol,
+        "precision": asset.precision,
+        "issuer": asset.issuer,
+    };
+    result.topHolders = topHolders
+    await res.json(result);
     //await res.json(holders)
 });
 
