@@ -197,8 +197,6 @@ router.get('/get-account/:account', async function (req, res, next) {
     }
 
 
-
-
 });
 
 
@@ -237,12 +235,31 @@ router.get('/orders-limit/:quote/:base', async function (req, res, next) {
     let resultBase = [];
     const assetQuote = (await BitShares.assets[req.params['quote']]);
     const assetBase = (await BitShares.assets[req.params['base']]);
-    for (let i=0; i < ords.length; i++) {
+    for (let i = 0; i < ords.length; i++) {
         let rez = await BitShares.db.get_objects([ords[i].seller]);
         if (ords[i].sell_price.base.asset_id === assetQuote.id) {
+            const amount = ords[i].for_sale / 10 ** assetQuote.precision;
+            const amountQ = ords[i].sell_price.quote.amount / 10 ** assetBase.precision;
             resultQuote.push({
                 name: rez[0].name,
-                amount: ords[i].for_sale / 10 ** assetQuote.precision,
+                ticker: assetQuote.symbol + "/" + assetBase.symbol,
+                amount: amount,
+                sell: {
+                    amount: amount.toFixed(8),
+                    symbol: assetQuote.symbol.replace('XBTSX.', ''),
+                    price: {
+                        amount: (amountQ / amount).toFixed(8),
+                        symbol: assetBase.symbol.replace('XBTSX.', ''),
+                    },
+                },
+                buy: {
+                    amount: amountQ.toFixed(8),
+                    symbol: assetBase.symbol.replace('XBTSX.', ''),
+                    price: {
+                        amount: (amount / amountQ).toFixed(8),
+                        symbol: assetQuote.symbol.replace('XBTSX.', ''),
+                    },
+                }
             });
         }
 
@@ -267,17 +284,16 @@ router.get('/asset-holders/:asset/:from/:limit', async function (req, res, next)
     const asset = (await BitShares.assets[req.params['asset']]);
 
 
-
     try {
         result.total = await BitShares.holdersCount(req.params['asset']);
 
-    } catch(e) {
+    } catch (e) {
         console.log('err: holders count')
     }
 
 
     let topHolders = [];
-    for (let i=0; i < holders.length; i++) {
+    for (let i = 0; i < holders.length; i++) {
         topHolders.push({
             name: holders[i].name,
             account_id: holders[i].account_id,
@@ -309,7 +325,7 @@ router.get('/block/:height', async function (req, res, next) {
 
 
         let ops = [];
-        for (let j=0; j < block.transactions[i].operations.length; j++) {
+        for (let j = 0; j < block.transactions[i].operations.length; j++) {
             let account = null;
 
             if (block.transactions[i].operations[j][0] === 0) {
@@ -328,7 +344,7 @@ router.get('/block/:height', async function (req, res, next) {
                 account = (await BitShares.db.get_objects([block.transactions[i].operations[j][1].seller]))[0]
             }
 
-            if (block.transactions[i].operations[j][0] > 58 &&  block.transactions[i].operations[j][0] < 64) {
+            if (block.transactions[i].operations[j][0] > 58 && block.transactions[i].operations[j][0] < 64) {
                 account = (await BitShares.db.get_objects([block.transactions[i].operations[j][1].account]))[0];
                 //console.log(block.transactions[i].operations[j][1].account)
             }
@@ -345,7 +361,7 @@ router.get('/block/:height', async function (req, res, next) {
                     amount: (fee.amount / (10 ** assets[fee.asset_id].precision)),
                     symbol: assets[fee.asset_id].symbol,
                 },
-                account: account ? account.name: null,
+                account: account ? account.name : null,
                 op: operations[block.transactions[i].operations[j][0]],
                 data: block.transactions[i].operations[j][1]
             });
@@ -613,7 +629,7 @@ router.get('/lps/:a', async function (req, res, next) {
             }
         }
         await res.json(result);
-    } catch(e) {
+    } catch (e) {
         res.json([]);
     }
 
@@ -728,7 +744,7 @@ router.get('/lp-single/:a', async function (req, res, next) {
             }
         }
         await res.json(result[0]);
-    } catch(e) {
+    } catch (e) {
         res.json(null)
     }
 
