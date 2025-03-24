@@ -240,15 +240,17 @@ router.get('/orders-limit/:quote/:base', async function (req, res, next) {
         if (ords[i].sell_price.base.asset_id === assetQuote.id) {
             const amount = ords[i].for_sale / 10 ** assetQuote.precision;
             const amountQ = ords[i].sell_price.quote.amount / 10 ** assetBase.precision;
+            const amountBase = ords[i].sell_price.base.amount / 10 ** assetQuote.precision;
             resultQuote.push({
                 name: rez[0].name,
                 ticker: assetQuote.symbol + "/" + assetBase.symbol,
                 amount: amount,
+                url: "https://ex.xbts.io/market/" + assetQuote.symbol + "_" + assetBase.symbol,
                 sell: {
                     amount: amount.toFixed(8),
                     symbol: assetQuote.symbol.replace('XBTSX.', ''),
                     price: {
-                        amount: (amountQ / amount).toFixed(8),
+                        amount: (amountQ / amountBase).toFixed(8),
                         symbol: assetBase.symbol.replace('XBTSX.', ''),
                     },
                 },
@@ -256,7 +258,7 @@ router.get('/orders-limit/:quote/:base', async function (req, res, next) {
                     amount: amountQ.toFixed(8),
                     symbol: assetBase.symbol.replace('XBTSX.', ''),
                     price: {
-                        amount: (amount / amountQ).toFixed(8),
+                        amount: (amountBase / amountQ).toFixed(8),
                         symbol: assetQuote.symbol.replace('XBTSX.', ''),
                     },
                 }
@@ -389,7 +391,13 @@ router.get('/block/:height', async function (req, res, next) {
 });
 
 router.get('/holders/:symbol/:from/:to', async function (req, res, next) {
-    await res.json(await BitShares.holders(req.params['symbol'], req.params['from'], req.params['to']));
+    let holders = [];
+    try {
+        holders = await BitShares.holders(req.params['symbol'], req.params['from'], req.params['to']);
+    } catch(e) {
+        console.log('err get holders')
+    }
+    await res.json(holders);
 });
 
 router.get('/object/:id', async function (req, res, next) {

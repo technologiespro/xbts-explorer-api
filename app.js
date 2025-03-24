@@ -7,6 +7,7 @@ const jsonFile = require('jsonfile');
 const config = jsonFile.readFileSync('./config.json');
 
 process.env.PORT = config.port;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 console.log("Running on port:", process.env.PORT);
 
 const wsSrv = require('./ws-server');
